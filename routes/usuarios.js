@@ -17,6 +17,7 @@ router.get('/', async (req, res) => {
     }
 });
 
+
 // ✅ Crear un usuario
 router.post('/', async (req, res) => {
     const { nombre_usuario, correo, contrasena_hash, rol } = req.body;
