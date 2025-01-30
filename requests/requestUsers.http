@@ -1,22 +1,3 @@
-### Registro de usuario
-POST https://protactics-api.onrender.com/auth/register
-Content-Type: application/json
-
-{
-  "nombre_usuario": "NuevoUsuario",
-  "correo": "nuevo@usuario.com",
-  "contrasena": "password123"
-}
-
-### Inicio de sesión
-POST https://protactics-api.onrender.com/auth/login
-Content-Type: application/json
-
-{
-  "correo": "alan.teixido@example.com",
-  "contrasena": "AlanTeixido"
-}
-
 ### Obtener todos los usuarios
 GET https://protactics-api.onrender.com/usuarios
 

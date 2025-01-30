@@ -1,0 +1,49 @@
+### Verificar si la ruta de autenticación está funcionando
+GET https://protactics-api.onrender.com/auth
+
+### Registro de usuario
+POST https://protactics-api.onrender.com/auth/register
+Content-Type: application/json
+
+{
+  "nombre_usuario": "Ulises",
+  "correo": "ulises@gmail.com",
+  "contrasena": "ana"
+}
+
+### Intentar registrar un usuario sin datos (debe devolver error)
+POST https://protactics-api.onrender.com/auth/register
+Content-Type: application/json
+
+{
+  "nombre_usuario": "",
+  "correo": "",
+  "contrasena": ""
+}
+
+### Inicio de sesión con usuario registrado
+POST https://protactics-api.onrender.com/auth/login
+Content-Type: application/json
+
+{
+  "correo": "ulises@gmail.com",
+  "contrasena": "ana"
+}
+
+### Inicio de sesión con credenciales incorrectas
+POST https://protactics-api.onrender.com/auth/login
+Content-Type: application/json
+
+{
+  "correo": "alan.teixido@example.com",
+  "contrasena": "incorrectPassword"
+}
+
+### Inicio de sesión con un usuario que no existe
+POST https://protactics-api.onrender.com/auth/login
+Content-Type: application/json
+
+{
+  "correo": "inexistente@correo.com",
+  "contrasena": "password123"
+}
