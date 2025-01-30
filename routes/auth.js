@@ -12,6 +12,11 @@ require("dotenv").config();
 
 const router = express.Router();
 
+router.get("/", (req, res) => {
+    res.json({ message: "Ruta de autenticación funcionando 🚀" });
+});
+
+
 // Registro de usuario
 router.post("/register", async (req, res) => {
   const { nombre_usuario, correo, contrasena } = req.body;
