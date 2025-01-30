@@ -29,8 +29,7 @@ Content-Type: application/json
   "rol": "administrador"
 }
 
-### Eliminar usuario (ID 1 - AlanTeixido)
-DELETE https://protactics-api.onrender.com/usuarios/1
+### Eliminar usuario (ID X)
+DELETE https://protactics-api.onrender.com/usuarios/3
 
-### Eliminar usuario (ID 2 - AdminProTactics)
-DELETE https://protactics-api.onrender.com/usuarios/2
+
