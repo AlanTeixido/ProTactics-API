@@ -1,0 +1,55 @@
+### Registro de usuario
+POST https://protactics-api.onrender.com/auth/register
+Content-Type: application/json
+
+{
+  "nombre_usuario": "NuevoUsuario",
+  "correo": "nuevo@usuario.com",
+  "contrasena": "password123"
+}
+
+### Inicio de sesión
+POST https://protactics-api.onrender.com/auth/login
+Content-Type: application/json
+
+{
+  "correo": "alan.teixido@example.com",
+  "contrasena": "AlanTeixido"
+}
+
+### Obtener todos los usuarios
+GET https://protactics-api.onrender.com/usuarios
+
+### Obtener un usuario por ID (ID 1 - AlanTeixido)
+GET https://protactics-api.onrender.com/usuarios/1
+
+### Obtener un usuario por ID (ID 2 - AdminProTactics)
+GET https://protactics-api.onrender.com/usuarios/2
+
+### Actualizar usuario (ID 1 - AlanTeixido)
+PUT https://protactics-api.onrender.com/usuarios/1
+Content-Type: application/json
+
+{
+  "nombre_usuario": "AlanTeixidoUpdated",
+  "correo": "alan.teixido@example.com",
+  "contrasena_hash": "NuevaPassword",
+  "rol": "usuario"
+}
+
+### Actualizar usuario (ID 2 - AdminProTactics)
+PUT https://protactics-api.onrender.com/usuarios/2
+Content-Type: application/json
+
+{
+  "nombre_usuario": "AdminProTacticsUpdated",
+  "correo": "admin@protactics.com",
+  "contrasena_hash": "NuevaPasswordAdmin",
+  "rol": "administrador"
+}
+
+### Eliminar usuario (ID 1 - AlanTeixido)
+DELETE https://protactics-api.onrender.com/usuarios/1
+
+### Eliminar usuario (ID 2 - AdminProTactics)
+DELETE https://protactics-api.onrender.com/usuarios/2
