@@ -16,38 +16,50 @@ const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
 });
-
-// 🔹 Assegurar-se que la carpeta 'uploads/' existeix
+// Asegurar que la carpeta 'uploads/' existe
 const uploadDir = path.join(__dirname, '../uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// 🔹 Configurar `multer` per a la pujada d'imatges
+// Configurar multer para la subida de imágenes
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, uploadDir); // Guardar imatges a 'uploads/'
+        cb(null, uploadDir); // Guardar imágenes en 'uploads/'
     },
     filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname)); // Nom únic
+        cb(null, Date.now() + path.extname(file.originalname)); // Nombre único
     }
 });
 
 const upload = multer({ storage });
 
-// 🔹 Endpoint per pujar foto de perfil
+// Endpoint para subir foto de perfil
 router.post("/upload-profile-pic", upload.single('foto'), async (req, res) => {
     try {
+        console.log("Archivo recibido:", req.file);
+
         const userId = req.body.id;
-        const fotoUrl = `/uploads/${req.file.filename}`; // Guardar la ruta
+        if (!req.file) {
+            return res.status(400).json({ error: "No se ha subido ninguna imagen" });
+        }
 
-        // Actualitzar a la BD
-        await pool.query("UPDATE usuarios SET foto_url = $1 WHERE id = $2", [fotoUrl, userId]);
+        const fotoUrl = `/uploads/${req.file.filename}`;
 
-        res.json({ message: "Foto de perfil actualitzada!", foto_url: fotoUrl });
+        console.log(`Guardando en BD: ${fotoUrl} para usuario ID: ${userId}`);
+
+        // Actualizar en la base de datos
+        const result = await pool.query(
+            "UPDATE usuarios SET foto_url = $1 WHERE id = $2 RETURNING *",
+            [fotoUrl, userId]
+        );
+
+        console.log("Resultado de BD:", result.rows[0]);
+
+        res.json({ message: "Foto de perfil actualizada!", foto_url: fotoUrl });
     } catch (error) {
-        console.error("Error en pujar la foto:", error);
-        res.status(500).json({ error: "Error al pujar la imatge" });
+        console.error("Error en la subida de foto:", error);
+        res.status(500).json({ error: "Error al subir la imagen." });
     }
 });
 
@@ -82,61 +94,53 @@ router.post("/register", async (req, res) => {
     }
 });
 
-// 🔹 Endpoint per iniciar sessió
+// Endpoint para iniciar sesión
 router.post("/login", async (req, res) => {
-    const { correo, contrasena } = req.body;
+  const { correo, contrasena } = req.body;
 
-    if (!correo || !contrasena) {
-        return res.status(400).json({ error: "El correu i la contrasenya són obligatoris." });
-    }
+  try {
+      const query = "SELECT id, nombre_usuario, correo, contrasena_hash, foto_url FROM usuarios WHERE correo = $1";
+      const result = await pool.query(query, [correo]);
 
-    try {
-        // Buscar usuari a la BD
-        const query = "SELECT id, nombre_usuario, correo, contrasena_hash, foto_url FROM usuarios WHERE correo = $1";
-        const result = await pool.query(query, [correo]);
+      if (result.rows.length === 0) {
+          return res.status(401).json({ error: "Usuario no encontrado." });
+      }
 
-        if (result.rows.length === 0) {
-            return res.status(401).json({ error: "Usuari no trobat." });
-        }
+      const user = result.rows[0];
 
-        const user = result.rows[0];
+      // Comprobar la contraseña
+      const isMatch = await bcrypt.compare(contrasena, user.contrasena_hash);
+      if (!isMatch) {
+          return res.status(401).json({ error: "Contraseña incorrecta." });
+      }
 
-        // Comprovar la contrasenya
-        const isMatch = await bcrypt.compare(contrasena, user.contrasena_hash);
-        if (!isMatch) {
-            return res.status(401).json({ error: "Contrasenya incorrecta." });
-        }
+      // Generar el token JWT
+      const token = jwt.sign(
+          {
+              id: user.id,
+              nombre_usuario: user.nombre_usuario,
+              correo: user.correo,
+              foto_url: user.foto_url
+          },
+          process.env.JWT_SECRET,
+          { expiresIn: "24h" }
+      );
 
-        // ✅ Generar token JWT amb la imatge de perfil
-        const token = jwt.sign(
-            {
-                id: user.id,
-                nombre_usuario: user.nombre_usuario,
-                correo: user.correo,
-                foto_url: user.foto_url // 🔥 Incloure la foto de perfil al token
-            },
-            process.env.JWT_SECRET,
-            { expiresIn: "24h" }
-        );
-
-        // ✅ Retornar el token i les dades de l'usuari
-        res.json({
-            message: "Login exitoso",
-            token,
-            id: user.id,
-            nombre_usuario: user.nombre_usuario,
-            correo: user.correo,
-            foto_url: user.foto_url
-        });
-
-    } catch (error) {
-        console.error("Error en /login:", error);
-        res.status(500).json({ error: "Error al iniciar sessió." });
-    }
+      res.json({
+          message: "Login exitoso",
+          token,
+          id: user.id,
+          nombre_usuario: user.nombre_usuario,
+          correo: user.correo,
+          foto_url: user.foto_url
+      });
+  } catch (error) {
+      console.error("Error en /login:", error);
+      res.status(500).json({ error: "Error al iniciar sesión." });
+  }
 });
 
 // Servir imágenes de perfil desde la carpeta 'uploads'
 router.use('/uploads', express.static(uploadDir));
-
 
 module.exports = router;
