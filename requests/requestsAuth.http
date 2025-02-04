@@ -6,9 +6,9 @@ POST https://protactics-api.onrender.com/auth/register
 Content-Type: application/json
 
 {
-  "nombre_usuario": "Ulises",
-  "correo": "ulises@gmail.com",
-  "contrasena": "ana"
+  "nombre_usuario": "hola",
+  "correo": "hola@gmail.com",
+  "contrasena": "hola"
 }
 
 ### Intentar registrar un usuario sin datos (debe devolver error)

@@ -50,42 +50,49 @@ router.post("/register", async (req, res) => {
 
   
 
-// Login de usuario
 router.post("/login", async (req, res) => {
   const { correo, contrasena } = req.body;
 
   if (!correo || !contrasena) {
-    return res.status(400).json({ error: "Correo y contraseña son obligatorios." });
+    return res.status(400).json({ error: "El correu i la contrasenya són obligatoris." });
   }
 
   try {
-    // Buscar usuario en la BD
-    const query = "SELECT * FROM usuarios WHERE correo = $1";
+    // Buscar usuari a la BD
+    const query = "SELECT id, nombre_usuario, correo, contrasena_hash FROM usuarios WHERE correo = $1";
     const result = await pool.query(query, [correo]);
 
     if (result.rows.length === 0) {
-      return res.status(401).json({ error: "Usuario no encontrado." });
+      return res.status(401).json({ error: "Usuari no trobat." });
     }
 
     const user = result.rows[0];
 
-    // Comparar contraseñas
+    // Comprovar la contrasenya
     const isMatch = await bcrypt.compare(contrasena, user.contrasena_hash);
     if (!isMatch) {
-      return res.status(401).json({ error: "Contraseña incorrecta." });
+      return res.status(401).json({ error: "Contrasenya incorrecta." });
     }
 
-    // Generar Token JWT
+    // Generar token
     const token = jwt.sign(
       { id: user.id, nombre_usuario: user.nombre_usuario, correo: user.correo },
       process.env.JWT_SECRET,
       { expiresIn: "24h" }
     );
 
-    res.json({ message: "Login exitoso", token });
+    // ✅ Retornar correctament el `nombre_usuario` i `correo`
+    res.json({
+      message: "Login exitoso",
+      token,
+      id: user.id,
+      nombre_usuario: user.nombre_usuario,
+      correo: user.correo
+    });
+
   } catch (error) {
     console.error("Error en /login:", error);
-    res.status(500).json({ error: "Error al iniciar sesión." });
+    res.status(500).json({ error: "Error al iniciar sessió." });
   }
 });
 
