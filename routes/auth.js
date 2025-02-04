@@ -19,28 +19,35 @@ router.get("/", (req, res) => {
 
 // Registro de usuario
 router.post("/register", async (req, res) => {
-    const { nombre_usuario, correo, contrasena } = req.body;
-  
-    if (!nombre_usuario || !correo || !contrasena) {
-      return res.status(400).json({ error: "Todos los campos son obligatorios." });
+  const { nombre_usuario, correo, contrasena } = req.body;
+
+  if (!nombre_usuario || !correo || !contrasena) {
+    return res.status(400).json({ error: "Todos los campos son obligatorios." });
+  }
+
+  try {
+    // Verificar si el correo ya está en la BD
+    const userExists = await pool.query("SELECT id FROM usuarios WHERE correo = $1", [correo]);
+    if (userExists.rows.length > 0) {
+      return res.status(409).json({ error: "El correo ya está registrado." });
     }
-  
-    try {
-      // Asegurar que la contraseña se encripta ANTES de guardarla
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(contrasena, salt);
-  
-      // Insertar usuario en la base de datos con contraseña encriptada
-      const query = "INSERT INTO usuarios (nombre_usuario, correo, contrasena_hash) VALUES ($1, $2, $3) RETURNING id, nombre_usuario, correo";
-      const values = [nombre_usuario, correo, hashedPassword];
-      const result = await pool.query(query, values);
-  
-      res.status(201).json({ message: "Usuario registrado correctamente.", user: result.rows[0] });
-    } catch (error) {
-      console.error("Error en /register:", error);
-      res.status(500).json({ error: "Error al registrar usuario." });
-    }
-  });
+
+    // Encriptar la contraseña
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(contrasena, salt);
+
+    // Insertar usuario
+    const query = "INSERT INTO usuarios (nombre_usuario, correo, contrasena_hash) VALUES ($1, $2, $3) RETURNING id, nombre_usuario, correo";
+    const values = [nombre_usuario, correo, hashedPassword];
+    const result = await pool.query(query, values);
+
+    res.status(201).json({ message: "Usuario registrado correctamente.", user: result.rows[0] });
+  } catch (error) {
+    console.error("Error en /register:", error);
+    res.status(500).json({ error: "Error al registrar usuario." });
+  }
+});
+
   
 
 // Login de usuario
