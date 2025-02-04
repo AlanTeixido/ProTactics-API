@@ -135,4 +135,8 @@ router.post("/login", async (req, res) => {
     }
 });
 
+// Servir imágenes de perfil desde la carpeta 'uploads'
+router.use('/uploads', express.static(uploadDir));
+
+
 module.exports = router;
