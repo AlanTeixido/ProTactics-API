@@ -49,7 +49,6 @@ router.post("/register", async (req, res) => {
 });
 
   
-
 router.post("/login", async (req, res) => {
   const { correo, contrasena } = req.body;
 
@@ -74,14 +73,18 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ error: "Contrasenya incorrecta." });
     }
 
-    // Generar token
+    // ✅ Afegim `nombre_usuario` i `correo` correctament al token
     const token = jwt.sign(
-      { id: user.id, nombre_usuario: user.nombre_usuario, correo: user.correo },
+      {
+        id: user.id,
+        nombre_usuario: user.nombre_usuario,  // 🔥 Afegeix aquest camp al JWT
+        correo: user.correo                   // 🔥 També assegura que el correu hi és
+      },
       process.env.JWT_SECRET,
       { expiresIn: "24h" }
     );
 
-    // ✅ Retornar correctament el `nombre_usuario` i `correo`
+    // ✅ Ara retornem el token juntament amb `nombre_usuario` i `correo`
     res.json({
       message: "Login exitoso",
       token,
@@ -95,5 +98,6 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ error: "Error al iniciar sessió." });
   }
 });
+
 
 module.exports = router;
