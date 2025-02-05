@@ -5,7 +5,8 @@ const { Pool } = require('pg');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 require("dotenv").config();
 
 // 🔹 Inicialitzar express Router primer
@@ -16,52 +17,26 @@ const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
 });
-// Asegurar que la carpeta 'uploads/' existe
-const uploadDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
 
-// Configurar multer para la subida de imágenes
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, uploadDir); // Guardar imágenes en 'uploads/'
+// Configurar Cloudinary amb les teves credencials
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+// Configurar Multer per pujar imatges directament a Cloudinary
+const storage = new CloudinaryStorage({
+    cloudinary,
+    params: {
+        folder: 'profile_pics', // Carpeta on es guardaran les fotos de perfil
+        allowedFormats: ['jpg', 'png', 'jpeg'],
+        transformation: [{ width: 300, height: 300, crop: 'limit' }]
     },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname)); // Nombre único
-    }
 });
 
 const upload = multer({ storage });
 
-// Endpoint para subir foto de perfil
-router.post("/upload-profile-pic", upload.single('foto'), async (req, res) => {
-    try {
-        console.log("Archivo recibido:", req.file);
-
-        const userId = req.body.id;
-        if (!req.file) {
-            return res.status(400).json({ error: "No se ha subido ninguna imagen" });
-        }
-
-        const fotoUrl = `/uploads/${req.file.filename}`;
-
-        console.log(`Guardando en BD: ${fotoUrl} para usuario ID: ${userId}`);
-
-        // Actualizar en la base de datos
-        const result = await pool.query(
-            "UPDATE usuarios SET foto_url = $1 WHERE id = $2 RETURNING *",
-            [fotoUrl, userId]
-        );
-
-        console.log("Resultado de BD:", result.rows[0]);
-
-        res.json({ message: "Foto de perfil actualizada!", foto_url: fotoUrl });
-    } catch (error) {
-        console.error("Error en la subida de foto:", error);
-        res.status(500).json({ error: "Error al subir la imagen." });
-    }
-});
 
 // 🔹 Endpoint per registrar un usuari
 router.post("/register", async (req, res) => {
@@ -140,8 +115,29 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// Servir imágenes de perfil desde la carpeta 'uploads'
-router.use('/uploads', express.static(uploadDir));
+// Endpoint per pujar una imatge de perfil
+router.post("/upload-profile-pic", upload.single('foto'), async (req, res) => {
+    try {
+        const userId = req.body.id;
+        if (!req.file || !req.file.path) {
+            return res.status(400).json({ error: "No s'ha pujat cap imatge." });
+        }
+
+        const fotoUrl = req.file.path; // Cloudinary genera automàticament una URL pública
+
+        // Guardar la URL de la imatge a la base de dades
+        await pool.query(
+            "UPDATE usuarios SET foto_url = $1 WHERE id = $2",
+            [fotoUrl, userId]
+        );
+
+        res.json({ message: "Foto de perfil actualitzada!", foto_url: fotoUrl });
+    } catch (error) {
+        console.error("Error en la pujada de la foto:", error);
+        res.status(500).json({ error: "Error al pujar la imatge." });
+    }
+});
+
 
 module.exports = router;
     

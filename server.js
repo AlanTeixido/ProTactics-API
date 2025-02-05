@@ -1,6 +1,13 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+require("dotenv").config();
+
+console.log("🌍 Cloudinary Config des de auth.js:");
+console.log("CLOUD_NAME:", process.env.CLOUDINARY_CLOUD_NAME);
+console.log("API_KEY:", process.env.CLOUDINARY_API_KEY);
+console.log("API_SECRET:", process.env.CLOUDINARY_API_SECRET);
+
 
 const app = express();
 app.use(express.json());
