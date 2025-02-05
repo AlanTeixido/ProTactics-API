@@ -118,20 +118,25 @@ router.post("/login", async (req, res) => {
 // Endpoint upload foto de perfil 
 router.post("/upload-profile-pic", upload.single('foto'), async (req, res) => {
     try {
-        console.log("📷 Fitxer rebut de Cloudinary:", req.file);
+        console.log("📷 Fitxer rebut per Cloudinary:", req.file);
+        console.log("🔎 Dades rebudes:", req.body);
 
         const userId = req.body.id;
         if (!req.file || !req.file.secure_url) {
+            console.error("❌ Error: No s'ha rebut cap fitxer o Cloudinary no ha retornat una URL.");
             return res.status(400).json({ error: "No s'ha pujat cap imatge." });
         }
 
-        const fotoUrl = req.file.secure_url; // Això ara guardarà una URL vàlida de Cloudinary
+        const fotoUrl = req.file.secure_url;
+        console.log(`✅ Foto pujada correctament: ${fotoUrl}`);
 
-        // Guardar la URL a la BD
-        await pool.query(
-            "UPDATE usuarios SET foto_url = $1 WHERE id = $2",
+        // Guardar la URL de la imatge a la BD
+        const result = await pool.query(
+            "UPDATE usuarios SET foto_url = $1 WHERE id = $2 RETURNING *",
             [fotoUrl, userId]
         );
+
+        console.log("✅ Base de dades actualitzada:", result.rows[0]);
 
         res.json({ message: "Foto de perfil actualitzada!", foto_url: fotoUrl });
     } catch (error) {
@@ -139,6 +144,7 @@ router.post("/upload-profile-pic", upload.single('foto'), async (req, res) => {
         res.status(500).json({ error: "Error al pujar la imatge." });
     }
 });
+
 
 
 module.exports = router;
