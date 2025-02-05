@@ -144,3 +144,4 @@ router.post("/login", async (req, res) => {
 router.use('/uploads', express.static(uploadDir));
 
 module.exports = router;
+    
