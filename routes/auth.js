@@ -3,8 +3,6 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { Pool } = require('pg');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 require("dotenv").config();
@@ -12,31 +10,37 @@ require("dotenv").config();
 // 🔹 Inicialitzar express Router primer
 const router = express.Router();
 
+// 🔹 Verificar que les variables d'entorn estan disponibles
+if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+    console.error("❌ ERROR: Les variables d'entorn de Cloudinary no estan configurades correctament.");
+    process.exit(1);
+}
+
 // 🔹 Inicialitzar la connexió a la BD abans d'usar-la
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
 });
 
-// Configurar Cloudinary amb les teves credencials
+// 🔹 Configurar Cloudinary
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Configurar Multer per pujar imatges directament a Cloudinary
+// 🔹 Configurar Multer perquè pugui pujar imatges a Cloudinary
 const storage = new CloudinaryStorage({
     cloudinary,
     params: {
-        folder: 'profile_pics', // Carpeta on es guardaran les fotos de perfil
-        allowedFormats: ['jpg', 'png', 'jpeg'],
+        folder: 'profile_pics',
+        allowed_formats: ['jpg', 'png', 'jpeg'],
         transformation: [{ width: 300, height: 300, crop: 'limit' }]
     },
 });
-
 const upload = multer({ storage });
 
+console.log("✅ Configuració de Cloudinary i Multer carregada correctament.");
 
 // 🔹 Endpoint per registrar un usuari
 router.post("/register", async (req, res) => {
@@ -64,12 +68,12 @@ router.post("/register", async (req, res) => {
 
         res.status(201).json({ message: "Usuari registrat correctament.", user: result.rows[0] });
     } catch (error) {
-        console.error("Error en /register:", error);
+        console.error("❌ Error en /register:", error);
         res.status(500).json({ error: "Error al registrar l'usuari." });
     }
 });
 
-// Endpoint para iniciar sesión
+// 🔹 Endpoint per iniciar sessió
 router.post("/login", async (req, res) => {
   const { correo, contrasena } = req.body;
 
@@ -78,15 +82,15 @@ router.post("/login", async (req, res) => {
       const result = await pool.query(query, [correo]);
 
       if (result.rows.length === 0) {
-          return res.status(401).json({ error: "Usuario no encontrado." });
+          return res.status(401).json({ error: "Usuari no trobat." });
       }
 
       const user = result.rows[0];
 
-      // Comprobar la contraseña
+      // Comprovar la contrasenya
       const isMatch = await bcrypt.compare(contrasena, user.contrasena_hash);
       if (!isMatch) {
-          return res.status(401).json({ error: "Contraseña incorrecta." });
+          return res.status(401).json({ error: "Contrasenya incorrecta." });
       }
 
       // Generar el token JWT
@@ -102,7 +106,7 @@ router.post("/login", async (req, res) => {
       );
 
       res.json({
-          message: "Login exitoso",
+          message: "✅ Login exitoso",
           token,
           id: user.id,
           nombre_usuario: user.nombre_usuario,
@@ -110,24 +114,24 @@ router.post("/login", async (req, res) => {
           foto_url: user.foto_url
       });
   } catch (error) {
-      console.error("Error en /login:", error);
-      res.status(500).json({ error: "Error al iniciar sesión." });
+      console.error("❌ Error en /login:", error);
+      res.status(500).json({ error: "Error al iniciar sessió." });
   }
 });
 
-// Endpoint upload foto de perfil 
+// 🔹 Endpoint per pujar una foto de perfil
 router.post("/upload-profile-pic", upload.single('foto'), async (req, res) => {
     try {
-        console.log("📷 Fitxer rebut per Cloudinary:", req.file);
-        console.log("🔎 Dades rebudes:", req.body);
+        console.log("📤 Rebent fitxer:", req.file);
+        console.log("📎 Dades rebudes:", req.body);
 
         const userId = req.body.id;
-        if (!req.file || !req.file.secure_url) {
+        if (!req.file || !req.file.path) {
             console.error("❌ Error: No s'ha rebut cap fitxer o Cloudinary no ha retornat una URL.");
             return res.status(400).json({ error: "No s'ha pujat cap imatge." });
         }
 
-        const fotoUrl = req.file.secure_url;
+        const fotoUrl = req.file.path;
         console.log(`✅ Foto pujada correctament: ${fotoUrl}`);
 
         // Guardar la URL de la imatge a la BD
@@ -138,14 +142,11 @@ router.post("/upload-profile-pic", upload.single('foto'), async (req, res) => {
 
         console.log("✅ Base de dades actualitzada:", result.rows[0]);
 
-        res.json({ message: "Foto de perfil actualitzada!", foto_url: fotoUrl });
+        res.json({ message: "✅ Foto de perfil actualitzada!", foto_url: fotoUrl });
     } catch (error) {
         console.error("❌ Error en la pujada de la foto:", error);
         res.status(500).json({ error: "Error al pujar la imatge." });
     }
 });
 
-
-
 module.exports = router;
-    
