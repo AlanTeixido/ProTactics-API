@@ -3,44 +3,65 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { Pool } = require('pg');
 const multer = require('multer');
-const cloudinary = require('cloudinary').v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const path = require('path');
+const fs = require('fs');
+
 require("dotenv").config();
 
 // 🔹 Inicialitzar express Router primer
 const router = express.Router();
-
-// 🔹 Verificar que les variables d'entorn estan disponibles
-if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
-    console.error("❌ ERROR: Les variables d'entorn de Cloudinary no estan configurades correctament.");
-    process.exit(1);
-}
 
 // 🔹 Inicialitzar la connexió a la BD abans d'usar-la
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
 });
+// Asegurar que la carpeta 'uploads/' existe
+const uploadDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
 
-// 🔹 Configurar Cloudinary
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
-});
-
-// 🔹 Configurar Multer perquè pugui pujar imatges a Cloudinary
-const storage = new CloudinaryStorage({
-    cloudinary,
-    params: {
-        folder: 'profile_pics',
-        allowed_formats: ['jpg', 'png', 'jpeg'],
-        transformation: [{ width: 300, height: 300, crop: 'limit' }]
+// Configurar multer para la subida de imágenes
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, uploadDir); // Guardar imágenes en 'uploads/'
     },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname)); // Nombre único
+    }
 });
+
 const upload = multer({ storage });
 
-console.log("✅ Configuració de Cloudinary i Multer carregada correctament.");
+// Endpoint para subir foto de perfil
+router.post("/upload-profile-pic", upload.single('foto'), async (req, res) => {
+    try {
+        console.log("Archivo recibido:", req.file);
+
+        const userId = req.body.id;
+        if (!req.file) {
+            return res.status(400).json({ error: "No se ha subido ninguna imagen" });
+        }
+
+        const fotoUrl = `/uploads/${req.file.filename}`;
+
+        console.log(`Guardando en BD: ${fotoUrl} para usuario ID: ${userId}`);
+
+        // Actualizar en la base de datos
+        const result = await pool.query(
+            "UPDATE usuarios SET foto_url = $1 WHERE id = $2 RETURNING *",
+            [fotoUrl, userId]
+        );
+
+        console.log("Resultado de BD:", result.rows[0]);
+
+        res.json({ message: "Foto de perfil actualizada!", foto_url: fotoUrl });
+    } catch (error) {
+        console.error("Error en la subida de foto:", error);
+        res.status(500).json({ error: "Error al subir la imagen." });
+    }
+});
 
 // 🔹 Endpoint per registrar un usuari
 router.post("/register", async (req, res) => {
@@ -68,12 +89,12 @@ router.post("/register", async (req, res) => {
 
         res.status(201).json({ message: "Usuari registrat correctament.", user: result.rows[0] });
     } catch (error) {
-        console.error("❌ Error en /register:", error);
+        console.error("Error en /register:", error);
         res.status(500).json({ error: "Error al registrar l'usuari." });
     }
 });
 
-// 🔹 Endpoint per iniciar sessió
+// Endpoint para iniciar sesión
 router.post("/login", async (req, res) => {
   const { correo, contrasena } = req.body;
 
@@ -82,15 +103,15 @@ router.post("/login", async (req, res) => {
       const result = await pool.query(query, [correo]);
 
       if (result.rows.length === 0) {
-          return res.status(401).json({ error: "Usuari no trobat." });
+          return res.status(401).json({ error: "Usuario no encontrado." });
       }
 
       const user = result.rows[0];
 
-      // Comprovar la contrasenya
+      // Comprobar la contraseña
       const isMatch = await bcrypt.compare(contrasena, user.contrasena_hash);
       if (!isMatch) {
-          return res.status(401).json({ error: "Contrasenya incorrecta." });
+          return res.status(401).json({ error: "Contraseña incorrecta." });
       }
 
       // Generar el token JWT
@@ -106,7 +127,7 @@ router.post("/login", async (req, res) => {
       );
 
       res.json({
-          message: "✅ Login exitoso",
+          message: "Login exitoso",
           token,
           id: user.id,
           nombre_usuario: user.nombre_usuario,
@@ -114,39 +135,13 @@ router.post("/login", async (req, res) => {
           foto_url: user.foto_url
       });
   } catch (error) {
-      console.error("❌ Error en /login:", error);
-      res.status(500).json({ error: "Error al iniciar sessió." });
+      console.error("Error en /login:", error);
+      res.status(500).json({ error: "Error al iniciar sesión." });
   }
 });
 
-// 🔹 Endpoint per pujar una foto de perfil
-router.post("/upload-profile-pic", upload.single('foto'), async (req, res) => {
-    try {
-        console.log("📤 Rebent fitxer:", req.file);
-        console.log("📎 Dades rebudes:", req.body);
-
-        const userId = req.body.id;
-        if (!req.file || !req.file.path) {
-            console.error("❌ Error: No s'ha rebut cap fitxer o Cloudinary no ha retornat una URL.");
-            return res.status(400).json({ error: "No s'ha pujat cap imatge." });
-        }
-
-        const fotoUrl = req.file.path;
-        console.log(`✅ Foto pujada correctament: ${fotoUrl}`);
-
-        // Guardar la URL de la imatge a la BD
-        const result = await pool.query(
-            "UPDATE usuarios SET foto_url = $1 WHERE id = $2 RETURNING *",
-            [fotoUrl, userId]
-        );
-
-        console.log("✅ Base de dades actualitzada:", result.rows[0]);
-
-        res.json({ message: "✅ Foto de perfil actualitzada!", foto_url: fotoUrl });
-    } catch (error) {
-        console.error("❌ Error en la pujada de la foto:", error);
-        res.status(500).json({ error: "Error al pujar la imatge." });
-    }
-});
+// Servir imágenes de perfil desde la carpeta 'uploads'
+router.use('/uploads', express.static(uploadDir));
 
 module.exports = router;
+    
