@@ -2,6 +2,27 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { Pool } = require('pg');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Asegurar que la carpeta 'uploads/' existe
+const uploadDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// Configurar almacenamiento con Multer
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname)); // Nombre único
+    }
+});
+
+const upload = multer({ storage });
 
 require("dotenv").config();
 
@@ -12,6 +33,32 @@ const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
 });
+
+// Subir imagen de perfil
+router.post("/upload-profile-pic", upload.single('foto'), async (req, res) => {
+    try {
+        const userId = req.body.id;
+
+        if (!req.file) {
+            return res.status(400).json({ error: "No se ha subido ninguna imagen" });
+        }
+
+        const fotoUrl = `/uploads/${req.file.filename}`;
+
+        // Guardar la imagen en la BD
+        const result = await pool.query(
+            "UPDATE usuarios SET foto_url = $1 WHERE id = $2 RETURNING *",
+            [fotoUrl, userId]
+        );
+
+        res.json({ message: "Foto de perfil actualizada!", foto_url: fotoUrl });
+    } catch (error) {
+        console.error("Error en la subida de foto:", error);
+        res.status(500).json({ error: "Error al subir la imagen." });
+    }
+});
+
+
 
 // 🔹 Endpoint per registrar un usuari
 router.post("/register", async (req, res) => {
