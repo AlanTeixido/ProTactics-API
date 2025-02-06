@@ -6,6 +6,8 @@ const { Pool } = require('pg');
 require("dotenv").config();
 
 const router = express.Router();
+
+// 🔹 Inicialitzar la connexió a la BD abans d'usar-la
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
@@ -15,41 +17,32 @@ const pool = new Pool({
 router.post("/register", async (req, res) => {
     const { nombre_usuario, correo, contrasena } = req.body;
 
-    console.log("🔹 Intentando registrar:", { nombre_usuario, correo });
-
     if (!nombre_usuario || !correo || !contrasena) {
-        console.log("❌ Faltan datos obligatorios");
-        return res.status(400).json({ error: "Todos los campos son obligatorios." });
+        return res.status(400).json({ error: "Tots els camps són obligatoris." });
     }
 
     try {
-        // Verificar si el usuario ya existe
+        // Comprovar si l'usuari ja existeix
         const userExists = await pool.query("SELECT id FROM usuarios WHERE correo = $1", [correo]);
         if (userExists.rows.length > 0) {
-            console.log("⚠️ El usuario ya está registrado:", correo);
-            return res.status(409).json({ error: "El correo ya está registrado." });
+            return res.status(409).json({ error: "El correu ja està registrat." });
         }
 
-        // Encriptar la contraseña
-        console.log("🔹 Generando hash de la contraseña...");
+        // Encriptar la contrasenya
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(contrasena, salt);
-        console.log("✅ Hash generado correctamente.");
 
-        // Insertar nuevo usuario
-        console.log("🔹 Insertando usuario en la BD...");
+        // Inserir nou usuari
         const query = "INSERT INTO usuarios (nombre_usuario, correo, contrasena_hash) VALUES ($1, $2, $3) RETURNING id, nombre_usuario, correo";
         const values = [nombre_usuario, correo, hashedPassword];
         const result = await pool.query(query, values);
-        console.log("✅ Usuario registrado con éxito:", result.rows[0]);
 
-        res.status(201).json({ message: "Usuario registrado correctamente.", user: result.rows[0] });
+        res.status(201).json({ message: "Usuari registrat correctament.", user: result.rows[0] });
     } catch (error) {
-        console.error("❌ Error en /register:", error);
-        res.status(500).json({ error: "Error al registrar el usuario." });
+        console.error("Error en /register:", error);
+        res.status(500).json({ error: "Error al registrar l'usuari." });
     }
 });
-
 
 // Endpoint para iniciar sesión
 router.post("/login", async (req, res) => {

@@ -10,7 +10,7 @@ const pool = new Pool({
 // ✅ Obtener todos los usuarios
 router.get('/', async (req, res) => {
     try {
-        const result = await pool.query('SELECT id, nombre_usuario, correo FROM usuarios;'); // Eliminé contrasena_hash por seguridad
+        const result = await pool.query('SELECT id, nombre_usuario, correo FROM usuarios;');
         res.json(result.rows);
     } catch (error) {
         res.status(500).json({ error: error.message });

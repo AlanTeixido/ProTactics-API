@@ -7,7 +7,7 @@ Content-Type: application/json
 
 {
   "nombre_usuario": "hola",
-  "correo": "hola@gmail.com",
+  "correo": "hola2@gmail.com",
   "contrasena": "hola"
 }
 
