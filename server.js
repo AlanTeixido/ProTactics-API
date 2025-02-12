@@ -9,9 +9,11 @@ app.use(cors()); // Permite llamadas desde el frontend
 // Importar rutas
 const usuariosRoutes = require('./routes/usuarios'); 
 const authRoutes = require('./routes/auth'); 
+const passwordRoutes = require("./routes/password");  
 
 app.use('/usuarios', usuariosRoutes); // Mapea "/usuarios" a usuarios.js
 app.use('/auth', authRoutes); // Mapea "/auth" a auth.js
+app.use("/password", passwordRoutes); // 🔹 Activem la ruta de canvi de contrasenya
 
 // Puerto del servidor
 const PORT = process.env.PORT || 3000;
