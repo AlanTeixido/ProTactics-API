@@ -12,10 +12,12 @@ const pool = new Pool({
 router.get("/", async (req, res) => {
     try {
         const query = `
-            SELECT posts.id, posts.titol, posts.contingut, posts.image_url, posts.creat_en, 
-                   usuarios.nombre_usuario 
+            SELECT posts.id, posts.titol, posts.contingut, posts.image_url, posts.creat_en,
+                   usuarios.nombre_usuario, entrenamientos.visibilidad
             FROM posts
             JOIN usuarios ON posts.usuario_id = usuarios.id
+            JOIN entrenamientos ON posts.entrenamiento_id = entrenamientos.id
+            WHERE entrenamientos.visibilidad = 'publico'
             ORDER BY posts.creat_en DESC
         `;
         const result = await pool.query(query);
@@ -25,6 +27,7 @@ router.get("/", async (req, res) => {
         res.status(500).json({ error: "❌ Error obtenint els posts." });
     }
 });
+
 
 // 🔹 Obtenir tots els posts d'un usuari específic
 router.get("/user/:id", async (req, res) => {
@@ -60,24 +63,41 @@ router.get("/user/:id", async (req, res) => {
 
 // 🔹 Crear un post (requereix autenticació)
 router.post("/", authMiddleware, async (req, res) => {
-    const { titol, contingut, image_url } = req.body;
-    const usuario_id = req.user.id; // ID de l'usuari autenticat
+    const { titol, contingut, image_url, entrenamiento_id } = req.body;
+    const usuario_id = req.user.id; // ID del usuario autenticado
 
-    if (!titol || !contingut) {
+    if (!titol || !contingut || !entrenamiento_id) {
         return res.status(400).json({ error: "❌ Tots els camps són obligatoris." });
     }
 
     try {
+        // Verificar si el entrenamiento existe y es público
+        const entrenamiento = await pool.query(
+            "SELECT visibilidad FROM entrenamientos WHERE id = $1 AND usuario_id = $2", 
+            [entrenamiento_id, usuario_id]
+        );
+
+        if (entrenamiento.rows.length === 0) {
+            return res.status(404).json({ error: "❌ Entrenament no trobat." });
+        }
+
+        if (entrenamiento.rows[0].visibilidad !== "publico") {
+            return res.status(403).json({ error: "🚫 No pots crear posts d'entrenaments privats." });
+        }
+
+        // Insertar el post
         const result = await pool.query(
-            "INSERT INTO posts (usuario_id, titol, contingut, image_url, creat_en) VALUES ($1, $2, $3, $4, NOW()) RETURNING *",
-            [usuario_id, titol, contingut, image_url || 'default-post.png']
+            "INSERT INTO posts (usuario_id, titol, contingut, image_url, entrenamiento_id, creat_en) VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING *",
+            [usuario_id, titol, contingut, image_url || 'default-post.png', entrenamiento_id]
         );
 
         res.status(201).json(result.rows[0]);
     } catch (error) {
+        console.error("❌ Error creant el post:", error);
         res.status(500).json({ error: "❌ Error creant el post." });
     }
 });
+
 
 // 🔹 Editar un post (només el propietari)
 router.put("/:id", authMiddleware, async (req, res) => {
