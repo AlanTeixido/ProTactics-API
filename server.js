@@ -18,5 +18,5 @@ app.get("/", (req, res) => {
     res.send("🔥 API de ProTactics en funcionament!");
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`✅ Servidor en marxa a http://localhost:${PORT}`));
