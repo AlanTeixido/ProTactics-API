@@ -26,30 +26,37 @@ router.get("/", async (req, res) => {
     }
 });
 
-
-// 🔹 Obtenir un post per ID
-router.get("/:id", async (req, res) => {
-    const post_id = req.params.id;
+// 🔹 Obtenir tots els posts d'un usuari específic
+router.get("/user/:id", async (req, res) => {
+    const usuario_id = req.params.id;
 
     try {
-        const result = await pool.query(`
-            SELECT posts.id, posts.titol, posts.contingut, 
-                   COALESCE(posts.image_url, 'default-post.png') AS image_url, 
-                   posts.creat_en, usuarios.nombre_usuario
-            FROM posts
-            JOIN usuarios ON posts.usuario_id = usuarios.id
-            WHERE posts.id = $1
-        `, [post_id]);
+        const result = await pool.query(
+            "SELECT posts.*, usuarios.nombre_usuario FROM posts INNER JOIN usuarios ON posts.usuario_id = usuarios.id WHERE usuario_id = $1 ORDER BY creat_en DESC", 
+            [usuario_id]
+        );
 
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: "❌ Post no trobat." });
-        }
-
-        res.json(result.rows[0]);
+        res.json(result.rows);
     } catch (error) {
-        res.status(500).json({ error: "❌ Error obtenint el post." });
+        res.status(500).json({ error: "❌ Error obtenint els posts de l'usuari." });
     }
 });
+// 🔹 Obtenir tots els posts d'un usuari específic
+router.get("/user/:id", async (req, res) => {
+    const usuario_id = req.params.id;
+
+    try {
+        const result = await pool.query(
+            "SELECT posts.*, usuarios.nombre_usuario FROM posts INNER JOIN usuarios ON posts.usuario_id = usuarios.id WHERE usuario_id = $1 ORDER BY creat_en DESC", 
+            [usuario_id]
+        );
+
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ error: "❌ Error obtenint els posts de l'usuari." });
+    }
+});
+
 
 // 🔹 Crear un post (requereix autenticació)
 router.post("/", authMiddleware, async (req, res) => {
