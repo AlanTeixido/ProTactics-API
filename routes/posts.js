@@ -11,19 +11,21 @@ const pool = new Pool({
 // 🔹 Obtenir tots els posts amb el nom de l'usuari
 router.get("/", async (req, res) => {
     try {
-        const result = await pool.query(`
-            SELECT posts.id, posts.titol, posts.contingut, 
-                   COALESCE(posts.image_url, 'default-post.png') AS image_url, 
-                   posts.creat_en, usuarios.nombre_usuario
+        const query = `
+            SELECT posts.id, posts.titol, posts.contingut, posts.image_url, posts.creat_en, 
+                   usuarios.nombre_usuario 
             FROM posts
             JOIN usuarios ON posts.usuario_id = usuarios.id
             ORDER BY posts.creat_en DESC
-        `);
+        `;
+        const result = await pool.query(query);
         res.json(result.rows);
     } catch (error) {
+        console.error("❌ Error obtenint els posts:", error);
         res.status(500).json({ error: "❌ Error obtenint els posts." });
     }
 });
+
 
 // 🔹 Obtenir un post per ID
 router.get("/:id", async (req, res) => {
