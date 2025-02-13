@@ -8,10 +8,17 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
-// 🔹 Obtenir tots els posts
+// 🔹 Obtenir tots els posts amb el nom de l'usuari
 router.get("/", async (req, res) => {
     try {
-        const result = await pool.query("SELECT * FROM posts ORDER BY creat_en DESC");
+        const result = await pool.query(`
+            SELECT posts.id, posts.titol, posts.contingut, 
+                   COALESCE(posts.image_url, 'default-post.png') AS image_url, 
+                   posts.creat_en, usuarios.nombre_usuario
+            FROM posts
+            JOIN usuarios ON posts.usuario_id = usuarios.id
+            ORDER BY posts.creat_en DESC
+        `);
         res.json(result.rows);
     } catch (error) {
         res.status(500).json({ error: "❌ Error obtenint els posts." });
@@ -23,7 +30,14 @@ router.get("/:id", async (req, res) => {
     const post_id = req.params.id;
 
     try {
-        const result = await pool.query("SELECT * FROM posts WHERE id = $1", [post_id]);
+        const result = await pool.query(`
+            SELECT posts.id, posts.titol, posts.contingut, 
+                   COALESCE(posts.image_url, 'default-post.png') AS image_url, 
+                   posts.creat_en, usuarios.nombre_usuario
+            FROM posts
+            JOIN usuarios ON posts.usuario_id = usuarios.id
+            WHERE posts.id = $1
+        `, [post_id]);
 
         if (result.rows.length === 0) {
             return res.status(404).json({ error: "❌ Post no trobat." });
@@ -37,7 +51,7 @@ router.get("/:id", async (req, res) => {
 
 // 🔹 Crear un post (requereix autenticació)
 router.post("/", authMiddleware, async (req, res) => {
-    const { titol, contingut } = req.body;
+    const { titol, contingut, image_url } = req.body;
     const usuario_id = req.user.id; // ID de l'usuari autenticat
 
     if (!titol || !contingut) {
@@ -46,8 +60,8 @@ router.post("/", authMiddleware, async (req, res) => {
 
     try {
         const result = await pool.query(
-            "INSERT INTO posts (usuario_id, titol, contingut, creat_en) VALUES ($1, $2, $3, NOW()) RETURNING *",
-            [usuario_id, titol, contingut]
+            "INSERT INTO posts (usuario_id, titol, contingut, image_url, creat_en) VALUES ($1, $2, $3, $4, NOW()) RETURNING *",
+            [usuario_id, titol, contingut, image_url || 'default-post.png']
         );
 
         res.status(201).json(result.rows[0]);
@@ -59,7 +73,7 @@ router.post("/", authMiddleware, async (req, res) => {
 // 🔹 Editar un post (només el propietari)
 router.put("/:id", authMiddleware, async (req, res) => {
     const post_id = req.params.id;
-    const { titol, contingut } = req.body;
+    const { titol, contingut, image_url } = req.body;
     const usuario_id = req.user.id; // ID de l'usuari autenticat
 
     if (!titol || !contingut) {
@@ -68,7 +82,7 @@ router.put("/:id", authMiddleware, async (req, res) => {
 
     try {
         // Verificar si el post pertany a l'usuari
-        const post = await pool.query("SELECT * FROM posts WHERE id = $1", [post_id]);
+        const post = await pool.query("SELECT usuario_id FROM posts WHERE id = $1", [post_id]);
         if (post.rows.length === 0) {
             return res.status(404).json({ error: "❌ Post no trobat." });
         }
@@ -78,8 +92,8 @@ router.put("/:id", authMiddleware, async (req, res) => {
         }
 
         const result = await pool.query(
-            "UPDATE posts SET titol = $1, contingut = $2, actualitzat_en = NOW() WHERE id = $3 RETURNING *",
-            [titol, contingut, post_id]
+            "UPDATE posts SET titol = $1, contingut = $2, image_url = $3, actualitzat_en = NOW() WHERE id = $4 RETURNING *",
+            [titol, contingut, image_url || 'default-post.png', post_id]
         );
 
         res.json(result.rows[0]);
@@ -95,7 +109,7 @@ router.delete("/:id", authMiddleware, async (req, res) => {
 
     try {
         // Verificar si el post pertany a l'usuari
-        const post = await pool.query("SELECT * FROM posts WHERE id = $1", [post_id]);
+        const post = await pool.query("SELECT usuario_id FROM posts WHERE id = $1", [post_id]);
         if (post.rows.length === 0) {
             return res.status(404).json({ error: "❌ Post no trobat." });
         }
