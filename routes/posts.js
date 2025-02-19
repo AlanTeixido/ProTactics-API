@@ -36,20 +36,21 @@ router.get("/user/:id", async (req, res) => {
 
     try {
         const query = `
-            SELECT posts.*, usuarios.nombre_usuario, entrenamientos.visibilidad
+            SELECT posts.*, usuarios.nombre_usuario
             FROM posts 
-            INNER JOIN usuarios ON posts.usuario_id = usuarios.id 
-            INNER JOIN entrenamientos ON posts.entrenamiento_id = entrenamientos.id
+            LEFT JOIN usuarios ON posts.usuario_id = usuarios.id 
             WHERE posts.usuario_id = $1
             ORDER BY posts.creat_en DESC
         `;
         const result = await pool.query(query, [usuario_id]);
+
         res.json(result.rows);
     } catch (error) {
-        console.error("❌ Error obtenint els posts de l'usuari:", error);
-        res.status(500).json({ error: "❌ Error obtenint els posts de l'usuari." });
+        console.error("❌ Error obteniendo los posts del usuario:", error);
+        res.status(500).json({ error: "❌ Error obteniendo los posts del usuario." });
     }
 });
+
 
 // 🔹 Crear un post (requereix autenticació)
 router.post("/", authMiddleware, async (req, res) => {
