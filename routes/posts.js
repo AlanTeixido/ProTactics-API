@@ -12,14 +12,16 @@ const pool = new Pool({
 router.get("/", async (req, res) => {
     try {
         const query = `
-            SELECT posts.id, posts.titol, posts.contingut, posts.image_url, posts.creat_en,
-                   usuarios.nombre_usuario, entrenamientos.visibilidad
-            FROM posts
-            JOIN usuarios ON posts.usuario_id = usuarios.id
-            JOIN entrenamientos ON posts.entrenamiento_id = entrenamientos.id
-            WHERE entrenamientos.visibilidad = 'publico'
-            ORDER BY posts.creat_en DESC
-        `;
+        SELECT posts.id, posts.titol, posts.contingut, posts.image_url, posts.creat_en,
+               usuarios.nombre_usuario, COALESCE(entrenamientos.visibilidad, 'publico') AS visibilidad
+        FROM posts
+        JOIN usuarios ON posts.usuario_id = usuarios.id
+        LEFT JOIN entrenamientos ON posts.entrenamiento_id = entrenamientos.id
+        WHERE (entrenamientos.visibilidad = 'publico' OR entrenamientos.visibilidad IS NULL)
+        ORDER BY posts.creat_en DESC
+    `;
+    
+
         const result = await pool.query(query);
         res.json(result.rows);
     } catch (error) {
