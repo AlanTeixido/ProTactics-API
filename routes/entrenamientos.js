@@ -25,47 +25,33 @@ router.get("/user/:id", async (req, res) => {
     const usuario_id = req.params.id;
 
     try {
-        // Obtener entrenamientos generales
         const entrenamientosQuery = `SELECT * FROM entrenamientos WHERE usuario_id = $1 ORDER BY creado_en DESC`;
         const entrenamientosResult = await pool.query(entrenamientosQuery, [usuario_id]);
 
         const entrenamientos = entrenamientosResult.rows;
 
-        // Comprobar si hay entrenamientos
-        if (entrenamientos.length === 0) {
-            return res.json([]);
-        }
+        if (entrenamientos.length === 0) return res.json([]);
 
-        // Recoger todos los ids de entrenamientos
         const entrenamientoIds = entrenamientos.map(e => e.id);
 
-        // Consultas específicas por cada tipo de deporte
-        const detallesPiscina = await pool.query(`SELECT * FROM entrenamientos_piscina WHERE entrenamiento_id = ANY($1)`, [entrenamientoIds]);
-        const detallesFutbol = await pool.query(`SELECT * FROM entrenamientos_futbol WHERE entrenamiento_id = ANY($1)`, [entrenamientoIds]);
-        const detallesCiclismo = await pool.query(`SELECT * FROM entrenamientos_ciclismo WHERE entrenamiento_id = ANY($1)`, [entrenamientoIds]);
-        const detallesRunning = await pool.query(`SELECT * FROM entrenamientos_running WHERE entrenamiento_id = ANY($1)`, [entrenamientoIds]);
-        const detallesPadel = await pool.query(`SELECT * FROM entrenamientos_padel WHERE entrenamiento_id = ANY($1)`, [entrenamientoIds]);
-
-        // Crear un mapa de detalles
-        const mapDetalles = (detalles) => {
-            return detalles.rows.reduce((acc, item) => {
+        const obtenerDetalles = async (tabla) => {
+            const query = `SELECT * FROM ${tabla} WHERE entrenamiento_id = ANY($1)`;
+            return (await pool.query(query, [entrenamientoIds])).rows.reduce((acc, item) => {
                 acc[item.entrenamiento_id] = item;
                 return acc;
             }, {});
         };
 
-        // Mapear los detalles en un objeto
-        const detallesMap = {
-            piscina: mapDetalles(detallesPiscina),
-            futbol: mapDetalles(detallesFutbol),
-            ciclismo: mapDetalles(detallesCiclismo),
-            running: mapDetalles(detallesRunning),
-            padel: mapDetalles(detallesPadel),
+        const detalles = {
+            piscina: await obtenerDetalles("entrenamientos_piscina"),
+            futbol: await obtenerDetalles("entrenamientos_futbol"),
+            ciclismo: await obtenerDetalles("entrenamientos_ciclismo"),
+            running: await obtenerDetalles("entrenamientos_running"),
+            padel: await obtenerDetalles("entrenamientos_padel"),
         };
 
-        // Asignar los detalles correspondientes a cada entrenamiento
         entrenamientos.forEach(entrenamiento => {
-            entrenamiento.detalles = detallesMap[entrenamiento.tipo_deporte]?.[entrenamiento.id] || {};
+            entrenamiento.detalles = detalles[entrenamiento.tipo_deporte]?.[entrenamiento.id] || {};
         });
 
         res.json(entrenamientos);
@@ -74,6 +60,7 @@ router.get("/user/:id", async (req, res) => {
         res.status(500).json({ error: "❌ Error obteniendo los entrenamientos." });
     }
 });
+
 
 
 
