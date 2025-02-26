@@ -8,6 +8,47 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
+// 🔹 Obtenir l'últim entrenament públic o de l'usuari autenticat
+router.get("/last", async (req, res) => {
+    const usuario_id = req.user?.id || null; // Opcional: Si hi ha usuari autenticat
+
+    try {
+        let query;
+        let params;
+
+        if (usuario_id) {
+            // Si està autenticat, obté l'últim entrenament de l'usuari
+            query = `
+                SELECT * FROM entrenamientos 
+                WHERE usuario_id = $1 
+                ORDER BY creado_en DESC 
+                LIMIT 1
+            `;
+            params = [usuario_id];
+        } else {
+            // Si no, mostra l'últim entrenament públic
+            query = `
+                SELECT * FROM entrenamientos 
+                WHERE visibilidad = 'publico' 
+                ORDER BY creado_en DESC 
+                LIMIT 1
+            `;
+            params = [];
+        }
+
+        const result = await pool.query(query, params);
+
+        if (result.rows.length === 0) {
+            return res.json({ mensaje: "No hi ha entrenaments disponibles." });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error("❌ Error obtenint l'últim entrenament:", error);
+        res.status(500).json({ error: "❌ Error obtenint l'últim entrenament." });
+    }
+});
+
 // 🔹 Obtener todos los entrenamientos públicos
 router.get("/", async (req, res) => {
     try {

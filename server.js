@@ -10,7 +10,6 @@ const historialEntrenamientosRoutes = require("./routes/historialEntrenamientos"
 const logsActividadesRoutes = require("./routes/logsActividades");
 const userStatsRoutes = require("./routes/userStats");
 const activityFeedRoutes = require("./routes/activityFeed");
-const suggestedTrainingsRoutes = require("./routes/suggestedTrainings");
 
 const app = express();
 app.use(express.json());
@@ -25,7 +24,6 @@ app.use("/historial_entrenamientos", historialEntrenamientosRoutes);
 app.use("/logs_actividades", logsActividadesRoutes);
 app.use("/user_stats", userStatsRoutes);
 app.use("/activity_feed", activityFeedRoutes);
-app.use("/suggested_trainings", suggestedTrainingsRoutes);
 
 app.get("/", (req, res) => {
     res.send("🔥 API de ProTactics en funcionament!");
