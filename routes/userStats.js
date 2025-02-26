@@ -1,6 +1,6 @@
 const express = require("express");
 const { Pool } = require("pg");
-const authMiddleware = require("../middleware/authMiddleware"); // Protecció amb JWT
+const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 const pool = new Pool({
@@ -10,9 +10,15 @@ const pool = new Pool({
 
 // 🔹 Obtenir estadístiques de l'usuari autenticat
 router.get("/", authMiddleware, async (req, res) => {
-  const usuario_id = req.user.id; // ID de l'usuari autenticat
-
   try {
+    // 🛠️ Comprovació extra: req.user ha de tenir un ID
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: "Accés denegat. Usuari no autenticat." });
+    }
+
+    const usuario_id = req.user.id;
+
+    // 🔹 Executar la consulta SQL per obtenir estadístiques
     const result = await pool.query(
       `SELECT 
         COUNT(*)::INTEGER AS total_trainings, 
