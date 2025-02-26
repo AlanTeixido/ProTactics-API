@@ -1,32 +1,47 @@
 const express = require("express");
 const { Pool } = require("pg");
-const authMiddleware = require("../middleware/authMiddleware");
+const authMiddleware = require("../middleware/authMiddleware"); // Protecció amb JWT
 
 const router = express.Router();
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
 });
 
-// 🔹 Obtenir estadístiques de l'usuari loguejat
+// 🔹 Obtenir estadístiques de l'usuari autenticat
 router.get("/", authMiddleware, async (req, res) => {
-    const usuario_id = req.user.id;
+  const usuario_id = req.user.id; // ID de l'usuari autenticat
 
-    try {
-        const result = await pool.query(`
-            SELECT COUNT(*) AS total_trainings,
-                   COALESCE(SUM(duracion), '0:00:00') AS total_time,
-                   COALESCE(SUM(calorias_quemadas), 0) AS total_calories,
-                   COALESCE(AVG(frecuencia_cardiaca_media), 0) AS avg_heart_rate
-            FROM progreso_entrenamientos
-            WHERE usuario_id = $1
-        `, [usuario_id]);
+  try {
+    const result = await pool.query(
+      `SELECT 
+        COUNT(*)::INTEGER AS total_trainings, 
+        COALESCE(SUM(EXTRACT(EPOCH FROM duracion))::INTEGER, 0) AS total_seconds, 
+        COALESCE(SUM(calorias_quemadas), 0) AS total_calories, 
+        COALESCE(AVG(frecuencia_cardiaca_media), 0)::INTEGER AS avg_heart_rate
+      FROM progreso_entrenamientos
+      WHERE usuario_id = $1`, 
+      [usuario_id]
+    );
 
-        res.json(result.rows[0]);
-    } catch (error) {
-        console.error("❌ Error obtenint estadístiques:", error);
-        res.status(500).json({ error: "❌ Error obtenint les estadístiques." });
-    }
+    // 🔹 Convertim els segons totals en format hores:minuts
+    const totalSeconds = result.rows[0].total_seconds;
+    const totalHours = Math.floor(totalSeconds / 3600);
+    const totalMinutes = Math.floor((totalSeconds % 3600) / 60);
+    const totalTimeFormatted = `${totalHours}h ${totalMinutes}m`;
+
+    // 🔹 Retornem les dades en format JSON
+    res.json({
+      total_trainings: result.rows[0].total_trainings,
+      total_time: totalTimeFormatted,
+      total_calories: result.rows[0].total_calories,
+      avg_heart_rate: result.rows[0].avg_heart_rate
+    });
+
+  } catch (error) {
+    console.error("❌ Error obtenint estadístiques:", error);
+    res.status(500).json({ error: "❌ Error obtenint les estadístiques." });
+  }
 });
 
 module.exports = router;
