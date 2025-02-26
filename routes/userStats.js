@@ -12,11 +12,11 @@ router.get("/public", async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT
-    COUNT(*)::INTEGER AS total_trainings,
-    COALESCE(SUM(EXTRACT(EPOCH FROM duracion_total))::INTEGER, 0) AS total_seconds,
-    COALESCE(SUM(calorias_quemadas), 0) AS total_calories,
-    COALESCE(AVG(rendimiento), 0)::INTEGER AS avg_performance
-    FROM historial_entrenamientos;` 
+        COUNT(*)::INTEGER AS total_trainings,
+        COALESCE(SUM(EXTRACT(EPOCH FROM duracion_total))::INTEGER, 0) AS total_seconds,
+        COALESCE(SUM(calorias_quemadas), 0) AS total_calories,
+        COALESCE(AVG(rendimiento), 0)::INTEGER AS avg_performance
+      FROM historial_entrenamientos;`
     );
 
     // 🔹 Convertir segons a hores i minuts
@@ -25,11 +25,12 @@ router.get("/public", async (req, res) => {
     const totalMinutes = Math.floor((totalSeconds % 3600) / 60);
     const totalTimeFormatted = `${totalHours}h ${totalMinutes}m`;
 
+    // 🔹 Resposta JSON corregida
     res.json({
       total_trainings: result.rows[0].total_trainings,
       total_time: totalTimeFormatted,
       total_calories: result.rows[0].total_calories,
-      avg_heart_rate: result.rows[0].avg_heart_rate
+      avg_performance: result.rows[0].avg_performance 
     });
 
   } catch (error) {
