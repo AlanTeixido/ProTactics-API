@@ -7,16 +7,16 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// 🔹 Endpoint públic per obtenir estadístiques generals sense autenticació
+// 🔹 Endpoint públic per obtenir estadístiques generals
 router.get("/public", async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT 
-        COUNT(*)::INTEGER AS total_trainings, 
-        COALESCE(SUM(EXTRACT(EPOCH FROM duracion))::INTEGER, 0) AS total_seconds, 
-        COALESCE(SUM(calorias_quemadas), 0) AS total_calories, 
-        COALESCE(AVG(frecuencia_cardiaca_media), 0)::INTEGER AS avg_heart_rate
-      FROM progreso_entrenamientos`
+      `SELECT
+    COUNT(*)::INTEGER AS total_trainings,
+    COALESCE(SUM(EXTRACT(EPOCH FROM duracion_total))::INTEGER, 0) AS total_seconds,
+    COALESCE(SUM(calorias_quemadas), 0) AS total_calories,
+    COALESCE(AVG(rendimiento), 0)::INTEGER AS avg_performance
+    FROM historial_entrenamientos;` 
     );
 
     // 🔹 Convertir segons a hores i minuts
