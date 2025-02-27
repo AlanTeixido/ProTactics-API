@@ -39,27 +39,5 @@ router.get("/public", async (req, res) => {
   }
 });
 
-// Backend (Node.js amb Express)
-router.get('/user_stats/weekly_goal', async (req, res) => {
-  const usuario_id = req.user.id;
-
-  try {
-    const result = await pool.query(
-      `SELECT SUM(valor_metrica) AS completed
-       FROM registro_progreso
-       WHERE usuario_id = $1 AND created_at >= $2`,
-      [usuario_id, moment().startOf('week').toDate()] // Filtra els registres des de l'inici de la setmana
-    );
-
-    const completed = result.rows[0].completed || 0;
-    const goal = 30; // Objectiu setmanal, per exemple 30 km
-
-    res.json({ completed, goal });
-  } catch (error) {
-    console.error('Error obtenint el progrés setmanal:', error);
-    res.status(500).send('Error en el servidor');
-  }
-});
-
 
 module.exports = router;
