@@ -189,5 +189,23 @@ router.delete("/:id", authMiddleware, async (req, res) => {
     }
 });
 
+// Ruta per obtenir els entrenaments recents
+router.get('/entrenamientos/recent', async (req, res) => {
+    try {
+      const recentTrainings = await db.Entrenamiento.findAll({
+        where: {
+          usuario_id: req.user.id,
+        },
+        order: [['inicio', 'DESC']],
+        limit: 5, // Mostrem els 5 últims entrenaments
+      });
+  
+      res.json(recentTrainings);
+    } catch (error) {
+      console.error('Error obtenint els entrenaments recents:', error);
+      res.status(500).send('Error en el servidor');
+    }
+  });
+  
 
 module.exports = router;
