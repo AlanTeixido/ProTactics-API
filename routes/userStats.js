@@ -42,27 +42,26 @@ router.get("/public", async (req, res) => {
 });
 
 // Endpoint per obtenir l'objectiu mensual per usuari
-router.get('/monthly_goal', authMiddleware, async (req, res) => {  // Afegit el middleware aquí
-  const usuario_id = req.user.id;  // Ara 'req.user.id' s'haurà de passar correctament
-
+router.get('/monthly_goal', async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT 
         COALESCE(SUM(distancia), 0) AS completed
        FROM entrenamientos
-       WHERE usuario_id = $1 AND creado_en >= $2 AND tipo_deporte IN ('running', 'ciclismo')`,
-      [usuario_id, moment().startOf('month').toDate()] // Filtra des de l'inici del mes
+       WHERE creado_en >= $1 AND tipo_deporte IN ('running', 'ciclismo')`,
+      [moment().startOf('month').toDate()] // Filtra desde el inicio del mes
     );
 
-    const completed = result.rows[0].completed || 0;  // Distància completada per l'usuari durant el mes
-    const goal = 120; // Objectiu mensual, per exemple 120 km
+    const completed = result.rows[0].completed || 0;  // Distancia completada por el usuario durante el mes
+    const goal = 120; // Objetivo mensual, por ejemplo 120 km
 
     res.json({ completed, goal });
   } catch (error) {
-    console.error('Error obtenint el progrés mensual:', error);
+    console.error('Error obteniendo el progreso mensual:', error);
     res.status(500).send('Error en el servidor');
   }
 });
+
 
 
 
