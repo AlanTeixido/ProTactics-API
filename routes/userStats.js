@@ -1,5 +1,6 @@
 const express = require("express");
 const { Pool } = require("pg");
+const moment = require("moment");  // Afegir la dependència moment per gestionar les dates
 
 const router = express.Router();
 const pool = new Pool({
@@ -39,7 +40,7 @@ router.get("/public", async (req, res) => {
   }
 });
 
-// Endpoint per obtenir l'objectiu mensual
+// 🔹 Endpoint per obtenir l'objectiu mensual
 router.get('/user_stats/monthly_goal', async (req, res) => {
   const usuario_id = req.user.id;
 
@@ -62,8 +63,5 @@ router.get('/user_stats/monthly_goal', async (req, res) => {
     res.status(500).send('Error en el servidor');
   }
 });
-
-
-
 
 module.exports = router;
