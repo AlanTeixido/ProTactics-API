@@ -1,6 +1,7 @@
 const express = require("express");
 const { Pool } = require("pg");
 const moment = require("moment");  // Afegir la dependència moment per gestionar les dates
+const authMiddleware = require("../middleware/authMiddleware"); // Afegir l'import aquí
 
 const router = express.Router();
 const pool = new Pool({
@@ -41,8 +42,8 @@ router.get("/public", async (req, res) => {
 });
 
 // Endpoint per obtenir l'objectiu mensual per usuari
-router.get('/monthly_goal', async (req, res) => {  // Ens assegurem que la ruta és /monthly_goal
-  const usuario_id = req.user.id;  // Això suposa que el "req.user.id" existeix i és correcte
+router.get('/monthly_goal', authMiddleware, async (req, res) => {  // Afegit el middleware aquí
+  const usuario_id = req.user.id;  // Ara 'req.user.id' s'haurà de passar correctament
 
   try {
     const result = await pool.query(
@@ -53,8 +54,8 @@ router.get('/monthly_goal', async (req, res) => {  // Ens assegurem que la ruta 
       [usuario_id, moment().startOf('month').toDate()] // Filtra des de l'inici del mes
     );
 
-    const completed = result.rows[0].completed || 0;
-    const goal = 120; // Objectiu mensual
+    const completed = result.rows[0].completed || 0;  // Distància completada per l'usuari durant el mes
+    const goal = 120; // Objectiu mensual, per exemple 120 km
 
     res.json({ completed, goal });
   } catch (error) {
