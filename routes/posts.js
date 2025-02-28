@@ -1,6 +1,5 @@
 const express = require("express");
 const { Pool } = require("pg");
-const authMiddleware = require("../middleware/authMiddleware"); // Protecció amb JWT
 
 const router = express.Router();
 const pool = new Pool({
@@ -9,7 +8,8 @@ const pool = new Pool({
 });
 
 // 🔹 Obtenir tots els posts només de entrenaments públics
-router.get("/", authMiddleware, async (req, res) => {
+router.get("/", async (req, res) => {
+    const { usuario_id } = req.query; // L'usuari autenticat es passa com query param (opcional)
 
     try {
         const query = `
@@ -29,7 +29,7 @@ router.get("/", authMiddleware, async (req, res) => {
             ORDER BY posts.creat_en DESC
         `;
 
-        const result = await pool.query(query, [usuario_id]);
+        const result = await pool.query(query, [usuario_id || null]);  // Si no hi ha usuari, no es compara amb likes
         res.json(result.rows);
     } catch (error) {
         console.error("❌ Error obtenint els posts públics:", error);
@@ -37,14 +37,14 @@ router.get("/", authMiddleware, async (req, res) => {
     }
 });
 
-
 // 🔹 Obtenir tots els posts d'un usuari (tant privats com públics)
 router.get("/user/:id", async (req, res) => {
     const usuario_id = req.params.id;
 
     try {
         const query = `
-            SELECT posts.*, usuarios.nombre_usuario
+            SELECT posts.*, usuarios.nombre_usuario,
+                (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id) AS likes_count
             FROM posts 
             LEFT JOIN usuarios ON posts.usuario_id = usuarios.id 
             WHERE posts.usuario_id = $1
@@ -59,18 +59,15 @@ router.get("/user/:id", async (req, res) => {
     }
 });
 
+// 🔹 Crear un post
+router.post("/", async (req, res) => {
+    const { usuario_id, titol, contingut, image_url, entrenamiento_id } = req.body;
 
-// 🔹 Crear un post (requereix autenticació)
-router.post("/", authMiddleware, async (req, res) => {
-    const { titol, contingut, image_url, entrenamiento_id } = req.body;
-    const usuario_id = req.user.id; // ID del usuario autenticado
-
-    if (!titol || !contingut || !entrenamiento_id) {
+    if (!usuario_id || !titol || !contingut || !entrenamiento_id) {
         return res.status(400).json({ error: "❌ Tots els camps són obligatoris." });
     }
 
     try {
-        // Verificar si el entrenamiento existe y pertenece al usuario
         const entrenamiento = await pool.query(
             "SELECT visibilidad FROM entrenamientos WHERE id = $1 AND usuario_id = $2", 
             [entrenamiento_id, usuario_id]
@@ -80,7 +77,6 @@ router.post("/", authMiddleware, async (req, res) => {
             return res.status(404).json({ error: "❌ Entrenament no trobat o no pertany a l'usuari." });
         }
 
-        // Insertar el post
         const result = await pool.query(
             "INSERT INTO posts (usuario_id, titol, contingut, image_url, entrenamiento_id, creat_en) VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING *",
             [usuario_id, titol, contingut, image_url || 'default-post.png', entrenamiento_id]
@@ -93,23 +89,22 @@ router.post("/", authMiddleware, async (req, res) => {
     }
 });
 
-// 🔹 Eliminar un post (només el propietari)
-router.delete("/:id", authMiddleware, async (req, res) => {
-    const post_id = req.params.id;
-    const usuario_id = req.user.id; // ID de l'usuari autenticat
+// 🔹 Eliminar un post (verifica amb el usuario_id)
+router.delete("/:id", async (req, res) => {
+    const { id } = req.params;
+    const { usuario_id } = req.body;
 
     try {
-        // Verificar si el post pertany a l'usuari
-        const post = await pool.query("SELECT usuario_id FROM posts WHERE id = $1", [post_id]);
+        const post = await pool.query("SELECT usuario_id FROM posts WHERE id = $1", [id]);
         if (post.rows.length === 0) {
             return res.status(404).json({ error: "❌ Post no trobat." });
         }
 
-        if (post.rows[0].usuario_id !== usuario_id) {
+        if (post.rows[0].usuario_id !== parseInt(usuario_id)) {
             return res.status(403).json({ error: "🚫 No tens permís per eliminar aquest post." });
         }
 
-        await pool.query("DELETE FROM posts WHERE id = $1", [post_id]);
+        await pool.query("DELETE FROM posts WHERE id = $1", [id]);
 
         res.json({ missatge: "✅ Post eliminat correctament!" });
     } catch (error) {
@@ -117,36 +112,44 @@ router.delete("/:id", authMiddleware, async (req, res) => {
     }
 });
 
-router.post('/:postId/like', authMiddleware, async (req, res) => {
+// 🔹 Donar Like
+router.post('/:postId/like', async (req, res) => {
     const { postId } = req.params;
-    const usuario_id = req.user.id;  // Ja que authMiddleware et dona el user.id
+    const { usuario_id } = req.body;
+
+    if (!usuario_id) {
+        return res.status(400).json({ error: "❌ Falten dades de l'usuari." });
+    }
 
     try {
         await pool.query(
             'INSERT INTO likes (usuario_id, post_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
             [usuario_id, postId]
         );
-        res.json({ message: 'Like registrado correctamente' });
+        res.json({ message: '✅ Like registrat correctament!' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-
-router.delete('/:postId/like', authMiddleware, async (req, res) => {
+// 🔹 Treure Like
+router.delete('/:postId/like', async (req, res) => {
     const { postId } = req.params;
-    const usuario_id = req.user.id;
+    const { usuario_id } = req.body;
+
+    if (!usuario_id) {
+        return res.status(400).json({ error: "❌ Falten dades de l'usuari." });
+    }
 
     try {
         await pool.query(
             'DELETE FROM likes WHERE usuario_id = $1 AND post_id = $2',
             [usuario_id, postId]
         );
-        res.json({ message: 'Like eliminado correctamente' });
+        res.json({ message: '✅ Like eliminat correctament!' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
-
 
 module.exports = router;
