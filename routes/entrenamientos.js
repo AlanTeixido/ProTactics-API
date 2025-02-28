@@ -105,6 +105,7 @@ router.get("/user/:id", async (req, res) => {
 
 
 
+// 🔹 Crear un nuevo entrenamiento amb detalls
 router.post("/", async (req, res) => {
     const {
         usuario_id,
@@ -117,6 +118,8 @@ router.post("/", async (req, res) => {
         tipo_deporte,
         detalles
     } = req.body;
+
+    console.log("📩 Dades rebudes al backend:", JSON.stringify(req.body, null, 2));
 
     if (!usuario_id || !nombre || !fecha || !duracion || !tipo_deporte) {
         return res.status(400).json({ error: "❌ Falten camps obligatoris." });
@@ -134,46 +137,12 @@ router.post("/", async (req, res) => {
 
         res.status(201).json({ mensaje: "✅ Entrenamiento guardado correctamente.", id: entrenamiento_id });
     } catch (error) {
-        console.error("❌ Error guardando entrenamiento:", error);
+        console.error("❌ Error guardando entrenamiento:", error.message, error.stack);
         res.status(500).json({ error: "❌ Error guardando el entrenamiento." });
     }
 });
 
-// Funció auxiliar per guardar els detalls específics
-router.post("/", async (req, res) => {
-    const {
-        usuario_id,
-        nombre,
-        descripcion,
-        fecha,
-        duracion,
-        dificultad,
-        visibilidad,
-        tipo_deporte,
-        detalles
-    } = req.body;
-
-    if (!usuario_id || !nombre || !fecha || !duracion || !tipo_deporte) {
-        return res.status(400).json({ error: "❌ Falten camps obligatoris." });
-    }
-
-    try {
-        const result = await pool.query(`
-            INSERT INTO entrenamientos (usuario_id, nombre, descripcion, fecha, duracion, dificultad, visibilidad, tipo_deporte, creado_en)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW()) RETURNING id
-        `, [usuario_id, nombre, descripcion, fecha, duracion, dificultad, visibilidad || 'privado', tipo_deporte]);
-
-        const entrenamiento_id = result.rows[0].id;
-
-        await guardarDetallsEntrenament(entrenamiento_id, tipo_deporte, detalles);
-
-        res.status(201).json({ mensaje: "✅ Entrenamiento guardado correctamente.", id: entrenamiento_id });
-    } catch (error) {
-        console.error("❌ Error guardando entrenamiento:", error);
-        res.status(500).json({ error: "❌ Error guardando el entrenamiento." });
-    }
-});
-
+// 🔹 Funció per guardar detalls d'esports específics
 async function guardarDetallsEntrenament(entrenamiento_id, tipo_deporte, detalles) {
     if (!detalles) return;
 
@@ -182,63 +151,34 @@ async function guardarDetallsEntrenament(entrenamiento_id, tipo_deporte, detalle
 
     switch (tipo_deporte) {
         case "ciclismo":
-            query = `
-                INSERT INTO entrenamientos_ciclismo (entrenamiento_id, velocidad, potencia, cadencia, velocidad_maxima)
-                VALUES ($1, $2, $3, $4, $5)
-            `;
+            query = `INSERT INTO entrenamientos_ciclismo (entrenamiento_id, velocidad, potencia, cadencia, velocidad_maxima) VALUES ($1, $2, $3, $4, $5)`;
             values.push(detalles.velocidad || 0, detalles.potencia || 0, detalles.cadencia || 0, detalles.velocidad_maxima || 0);
             break;
 
         case "futbol":
-            query = `
-                INSERT INTO entrenamientos_futbol (entrenamiento_id, tipo, posicion, goles, asistencias)
-                VALUES ($1, $2, $3, $4, $5)
-            `;
+            query = `INSERT INTO entrenamientos_futbol (entrenamiento_id, tipo, posicion, goles, asistencias) VALUES ($1, $2, $3, $4, $5)`;
             values.push(detalles.tipo || "", detalles.posicion || "", detalles.goles || 0, detalles.asistencias || 0);
             break;
 
         case "running":
-            query = `
-                INSERT INTO entrenamientos_running (entrenamiento_id, ritmo_medio, altimetria, zancada_media)
-                VALUES ($1, $2, $3, $4)
-            `;
-            values.push(detalles.ritmo_medio || "", detalles.altimetria || "", detalles.zancada_media || "");
+            query = `INSERT INTO entrenamientos_running (entrenamiento_id, ritmo_medio, altimetria, zancada_media) VALUES ($1, $2, $3, $4)`;
+            values.push(detalles.ritmo_medio || "", detalles.altimetria || 0, detalles.zancada_media || 0);
             break;
 
         case "piscina":
-            query = `
-                INSERT INTO entrenamientos_piscina (entrenamiento_id, num_piscinas, tamano_piscina, estilo)
-                VALUES ($1, $2, $3, $4)
-            `;
+            query = `INSERT INTO entrenamientos_piscina (entrenamiento_id, num_piscinas, tamano_piscina, estilo) VALUES ($1, $2, $3, $4)`;
             values.push(detalles.num_piscinas || 0, detalles.tamano_piscina || "", detalles.estilo || "");
             break;
 
         case "padel":
-            query = `
-                INSERT INTO entrenamientos_padel (entrenamiento_id, sets, puntos_ganados, superficie)
-                VALUES ($1, $2, $3, $4)
-            `;
+            query = `INSERT INTO entrenamientos_padel (entrenamiento_id, sets, puntos_ganados, superficie) VALUES ($1, $2, $3, $4)`;
             values.push(detalles.sets || 0, detalles.puntos_ganados || 0, detalles.superficie || "");
-            break;
-
-        case "gimnasio":
-            query = `
-                INSERT INTO entrenamientos_gimnasio (entrenamiento_id, tipo, musculos)
-                VALUES ($1, $2, $3)
-            `;
-            values.push(detalles.tipo || "", detalles.musculos || "");
-            break;
-
-        case "atletismo":
-            query = `
-                INSERT INTO entrenamientos_atletismo (entrenamiento_id, distancia)
-                VALUES ($1, $2)
-            `;
-            values.push(detalles.distancia || 0);
             break;
     }
 
     if (query) {
+        console.log(`🔧 Executant query per ${tipo_deporte}:`, query);
+        console.log(`📊 Valors:`, values);
         await pool.query(query, values);
     }
 }
