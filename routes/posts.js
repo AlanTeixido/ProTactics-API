@@ -109,4 +109,36 @@ router.delete("/:id", authMiddleware, async (req, res) => {
     }
 });
 
+router.post('/:postId/like', authMiddleware, async (req, res) => {
+    const { postId } = req.params;
+    const usuario_id = req.user.id;  // Ja que authMiddleware et dona el user.id
+
+    try {
+        await pool.query(
+            'INSERT INTO likes (usuario_id, post_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+            [usuario_id, postId]
+        );
+        res.json({ message: 'Like registrado correctamente' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
+router.delete('/:postId/like', authMiddleware, async (req, res) => {
+    const { postId } = req.params;
+    const usuario_id = req.user.id;
+
+    try {
+        await pool.query(
+            'DELETE FROM likes WHERE usuario_id = $1 AND post_id = $2',
+            [usuario_id, postId]
+        );
+        res.json({ message: 'Like eliminado correctamente' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
 module.exports = router;
