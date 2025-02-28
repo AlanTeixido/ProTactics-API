@@ -73,4 +73,39 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+// Obtener resumen del perfil (posts, seguidores, entrenamientos)
+router.get('/:id/resumen', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // Consulta total d'entrenaments
+        const entrenos = await pool.query(
+            'SELECT COUNT(*) FROM entrenamientos WHERE usuario_id = $1',
+            [id]
+        );
+
+        // Consulta total de posts/publicacions
+        const posts = await pool.query(
+            'SELECT COUNT(*) FROM posts WHERE usuario_id = $1',
+            [id]
+        );
+
+        // Consulta total de seguidors
+        const seguidores = await pool.query(
+            'SELECT COUNT(*) FROM seguimientos WHERE seguido_id = $1',
+            [id]
+        );
+
+        res.json({
+            trainings: parseInt(entrenos.rows[0].count, 10),
+            shared: parseInt(posts.rows[0].count, 10),
+            followers: parseInt(seguidores.rows[0].count, 10),
+        });
+    } catch (error) {
+        console.error('Error obteniendo resumen del usuario:', error);
+        res.status(500).json({ error: 'Error obteniendo resumen del usuario' });
+    }
+});
+
+
 module.exports = router;
