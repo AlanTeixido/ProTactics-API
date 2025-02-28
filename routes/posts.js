@@ -9,26 +9,35 @@ const pool = new Pool({
 });
 
 // 🔹 Obtenir tots els posts només de entrenaments públics
-router.get("/", async (req, res) => {
+router.get("/", authMiddleware, async (req, res) => {
+    const usuario_id = req.user.id;  // Agafem qui està loguejat
+
     try {
         const query = `
-        SELECT posts.id, posts.titol, posts.contingut, posts.image_url, posts.creat_en,
-               usuarios.nombre_usuario, COALESCE(entrenamientos.visibilidad, 'publico') AS visibilidad
-        FROM posts
-        JOIN usuarios ON posts.usuario_id = usuarios.id
-        LEFT JOIN entrenamientos ON posts.entrenamiento_id = entrenamientos.id
-        WHERE (entrenamientos.visibilidad = 'publico' OR entrenamientos.visibilidad IS NULL)
-        ORDER BY posts.creat_en DESC
-    `;
-    
+            SELECT posts.id, posts.titol, posts.contingut, posts.image_url, posts.creat_en,
+                usuarios.nombre_usuario,
+                COALESCE(entrenamientos.visibilidad, 'publico') AS visibilidad,
+                (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id) AS likes_count,
+                (SELECT EXISTS (
+                    SELECT 1 FROM likes 
+                    WHERE likes.post_id = posts.id 
+                    AND likes.usuario_id = $1
+                )) AS liked_by_user
+            FROM posts
+            JOIN usuarios ON posts.usuario_id = usuarios.id
+            LEFT JOIN entrenamientos ON posts.entrenamiento_id = entrenamientos.id
+            WHERE (entrenamientos.visibilidad = 'publico' OR entrenamientos.visibilidad IS NULL)
+            ORDER BY posts.creat_en DESC
+        `;
 
-        const result = await pool.query(query);
+        const result = await pool.query(query, [usuario_id]);
         res.json(result.rows);
     } catch (error) {
         console.error("❌ Error obtenint els posts públics:", error);
         res.status(500).json({ error: "❌ Error obtenint els posts." });
     }
 });
+
 
 // 🔹 Obtenir tots els posts d'un usuari (tant privats com públics)
 router.get("/user/:id", async (req, res) => {
