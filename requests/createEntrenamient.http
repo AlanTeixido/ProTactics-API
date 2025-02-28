@@ -1,0 +1,98 @@
+### Provar que l'API d'entrenaments està activa
+GET https://protactics-api.onrender.com/entrenamientos
+
+
+### Crear un entrenament de ciclisme
+POST https://protactics-api.onrender.com/entrenamientos
+Content-Type: application/json
+
+{
+    "usuario_id": "1",
+    "nombre": "Ruta matinal",
+    "descripcion": "Sortida en bici pel Garraf",
+    "fecha": "2025-03-01",
+    "duracion": "120",
+    "dificultad": "intermedio",
+    "visibilidad": "publico",
+    "tipo_deporte": "ciclismo",
+    "detalles": {
+        "velocidad": 25,
+        "potencia": 200,
+        "cadencia": 90,
+        "velocidad_maxima": 45
+    }
+}
+
+
+### Crear un entrenament de gimnàs
+POST https://protactics-api.onrender.com/entrenamientos
+Content-Type: application/json
+
+{
+    "usuario_id": "1",
+    "nombre": "Sessió Gym",
+    "descripcion": "Entrenament complet de força",
+    "fecha": "2025-03-01",
+    "duracion": "90",
+    "dificultad": "avanzado",
+    "visibilidad": "privado",
+    "tipo_deporte": "gimnasio",
+    "detalles": {
+        "tipo": "Pes lliure",
+        "musculos": "Pectorals, esquena, cames"
+    }
+}
+
+
+### Intent de creació d’entrenament amb camps buits (ha de fallar)
+POST https://protactics-api.onrender.com/entrenamientos
+Content-Type: application/json
+
+{
+    "usuario_id": "1",
+    "nombre": "",
+    "descripcion": "Sense nom",
+    "fecha": "2025-03-01",
+    "duracion": "60",
+    "dificultad": "principiante",
+    "visibilidad": "publico",
+    "tipo_deporte": "running",
+    "detalles": {
+        "ritmo_medio": "5:20",
+        "altimetria": "300",
+        "zancada_media": "1.1"
+    }
+}
+
+
+### Crear entrenament d'un esport no controlat (ha de crear l'entrenament sense detalls)
+POST https://protactics-api.onrender.com/entrenamientos
+Content-Type: application/json
+
+{
+    "usuario_id": "1",
+    "nombre": "Partit Ultimate Frisbee",
+    "descripcion": "Partit amb els col·legues",
+    "fecha": "2025-03-01",
+    "duracion": "90",
+    "dificultad": "intermedio",
+    "visibilidad": "publico",
+    "tipo_deporte": "ultimate_frisbee",
+    "detalles": {}
+}
+
+
+### Crear entrenament sense usuario_id (ha de fallar)
+POST https://protactics-api.onrender.com/entrenamientos
+Content-Type: application/json
+
+{
+    "nombre": "Entrenament sense usuari",
+    "descripcion": "Aquest ha de fallar",
+    "fecha": "2025-03-01",
+    "duracion": "45",
+    "dificultad": "principiante",
+    "visibilidad": "privado",
+    "tipo_deporte": "running",
+    "detalles": {}
+}
