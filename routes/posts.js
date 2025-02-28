@@ -10,7 +10,6 @@ const pool = new Pool({
 
 // 🔹 Obtenir tots els posts només de entrenaments públics
 router.get("/", authMiddleware, async (req, res) => {
-    const usuario_id = req.user.id;  // Agafem qui està loguejat
 
     try {
         const query = `
