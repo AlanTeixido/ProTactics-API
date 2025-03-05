@@ -3,7 +3,7 @@ const bcrypt = require("bcryptjs");
 const { Pool } = require("pg");
 const multer = require("multer");
 const path = require("path");
-const authMiddleware = require("../middleware/authMiddleware"); // Protecció amb JWT
+const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 const pool = new Pool({
@@ -11,21 +11,24 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
-// 📂 Configuració de Multer per pujar imatges
+// 📂 Exponer carpeta de imágenes
+router.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+
+// 📂 Configuración de Multer para subir imágenes
 const storage = multer.diskStorage({
-    destination: "./uploads/",
+    destination: path.join(__dirname, "../uploads"),
     filename: (req, file, cb) => {
         cb(null, `profile_${req.user.id}${path.extname(file.originalname)}`);
     }
 });
 const upload = multer({ storage });
 
-// 🔹 Endpoint per carregar les dades de l'usuari
+// 🔹 Cargar datos del usuario
 router.get("/:id", authMiddleware, async (req, res) => {
     const usuario_id = req.params.id;
 
     try {
-        const result = await pool.query("SELECT id, nombre_usuario, correo, profile_image FROM usuarios WHERE id = $1", [usuario_id]);
+        const result = await pool.query("SELECT id, nombre_usuario, correo, foto_url FROM usuarios WHERE id = $1", [usuario_id]);
 
         if (result.rows.length === 0) {
             return res.status(404).json({ error: "Usuari no trobat." });
@@ -37,7 +40,7 @@ router.get("/:id", authMiddleware, async (req, res) => {
     }
 });
 
-// 🔹 Endpoint per actualitzar nom d'usuari i correu
+// 🔹 Actualizar datos del usuario
 router.put("/:id", authMiddleware, async (req, res) => {
     const usuario_id = req.params.id;
     const { nombre_usuario, correo } = req.body;
@@ -49,13 +52,13 @@ router.put("/:id", authMiddleware, async (req, res) => {
     try {
         await pool.query("UPDATE usuarios SET nombre_usuario = $1, correo = $2 WHERE id = $3", [nombre_usuario, correo, usuario_id]);
 
-        res.json({ missatge: "✅ Perfil actualitzat correctament!" });
+        res.json({ mensaje: "✅ Perfil actualitzat correctament!" });
     } catch (error) {
         res.status(500).json({ error: "❌ No s'ha pogut actualitzar el perfil." });
     }
 });
 
-// 🔹 Endpoint per canviar la contrasenya
+// 🔹 Cambiar contraseña
 router.put("/:id/password", authMiddleware, async (req, res) => {
     const usuario_id = req.params.id;
     const { contrasena_actual, contrasena_nova } = req.body;
@@ -65,7 +68,6 @@ router.put("/:id/password", authMiddleware, async (req, res) => {
     }
 
     try {
-        // 🔍 Obtenir la contrasenya actual de la BD
         const result = await pool.query("SELECT contrasena_hash FROM usuarios WHERE id = $1", [usuario_id]);
 
         if (result.rows.length === 0) {
@@ -74,26 +76,23 @@ router.put("/:id/password", authMiddleware, async (req, res) => {
 
         const contrasenaHashActual = result.rows[0].contrasena_hash;
 
-        // 🔑 Verificar la contrasenya actual
         const coincideix = await bcrypt.compare(contrasena_actual, contrasenaHashActual);
         if (!coincideix) {
             return res.status(401).json({ error: "La contrasenya actual és incorrecta." });
         }
 
-        // 🔒 Encriptar la nova contrasenya
         const salt = await bcrypt.genSalt(10);
         const novaContrasenaHash = await bcrypt.hash(contrasena_nova, salt);
 
-        // 📝 Actualitzar la contrasenya a la BD
         await pool.query("UPDATE usuarios SET contrasena_hash = $1 WHERE id = $2", [novaContrasenaHash, usuario_id]);
 
-        res.json({ missatge: "✅ Contrasenya actualitzada correctament!" });
+        res.json({ mensaje: "✅ Contrasenya actualitzada correctament!" });
     } catch (error) {
         res.status(500).json({ error: "Error intern del servidor." });
     }
 });
 
-// 🔹 Endpoint per pujar una imatge de perfil
+// 🔹 Subir imagen de perfil
 router.post("/:id/profile-picture", authMiddleware, upload.single("profileImage"), async (req, res) => {
     const usuario_id = req.params.id;
 
@@ -101,12 +100,12 @@ router.post("/:id/profile-picture", authMiddleware, upload.single("profileImage"
         return res.status(400).json({ error: "❌ Selecciona una imatge." });
     }
 
-    const imagePath = req.file.filename; 
+    const imagePath = `/uploads/${req.file.filename}`;
 
     try {
-        await pool.query("UPDATE usuarios SET profile_image = $1 WHERE id = $2", [imagePath, usuario_id]);
+        await pool.query("UPDATE usuarios SET foto_url = $1 WHERE id = $2", [imagePath, usuario_id]);
 
-        res.json({ missatge: "✅ Foto de perfil actualitzada!", profileImage: imagePath });
+        res.json({ mensaje: "✅ Foto de perfil actualitzada!", foto_url: imagePath });
     } catch (error) {
         res.status(500).json({ error: "❌ Error canviant la foto de perfil." });
     }
