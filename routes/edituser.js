@@ -28,7 +28,10 @@ router.get("/:id", authMiddleware, async (req, res) => {
     const usuario_id = req.params.id;
 
     try {
-        const result = await pool.query("SELECT id, nombre_usuario, correo, foto_url FROM usuarios WHERE id = $1", [usuario_id]);
+        const result = await pool.query(
+            "SELECT id, nombre_usuario, correo, foto_url FROM usuarios WHERE id = $1",
+            [usuario_id]
+        );
 
         if (result.rows.length === 0) {
             return res.status(404).json({ error: "Usuari no trobat." });
@@ -36,6 +39,7 @@ router.get("/:id", authMiddleware, async (req, res) => {
 
         res.json(result.rows[0]);
     } catch (error) {
+        console.error(error);
         res.status(500).json({ error: "Error carregant les dades de l'usuari." });
     }
 });
@@ -50,17 +54,21 @@ router.put("/:id", authMiddleware, async (req, res) => {
     }
 
     try {
-        await pool.query("UPDATE usuarios SET nombre_usuario = $1, correo = $2 WHERE id = $3", [nombre_usuario, correo, usuario_id]);
+        await pool.query(
+            "UPDATE usuarios SET nombre_usuario = $1, correo = $2, actualizado_en = now() WHERE id = $3",
+            [nombre_usuario, correo, usuario_id]
+        );
 
         res.json({ mensaje: "✅ Perfil actualitzat correctament!" });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ error: "❌ No s'ha pogut actualitzar el perfil." });
     }
 });
 
-// 🔹 Cambiar contraseña
-router.put("/:id/password", authMiddleware, async (req, res) => {
-    const usuario_id = req.params.id;
+// 🔹 Cambiar contraseña (ahora es global, sin `:id`)
+router.put("/password", authMiddleware, async (req, res) => {
+    const usuario_id = req.user.id; // Usamos el ID del token directamente
     const { contrasena_actual, contrasena_nova } = req.body;
 
     if (!contrasena_actual || !contrasena_nova) {
@@ -68,7 +76,10 @@ router.put("/:id/password", authMiddleware, async (req, res) => {
     }
 
     try {
-        const result = await pool.query("SELECT contrasena_hash FROM usuarios WHERE id = $1", [usuario_id]);
+        const result = await pool.query(
+            "SELECT contrasena_hash FROM usuarios WHERE id = $1",
+            [usuario_id]
+        );
 
         if (result.rows.length === 0) {
             return res.status(404).json({ error: "Usuari no trobat." });
@@ -84,10 +95,14 @@ router.put("/:id/password", authMiddleware, async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const novaContrasenaHash = await bcrypt.hash(contrasena_nova, salt);
 
-        await pool.query("UPDATE usuarios SET contrasena_hash = $1 WHERE id = $2", [novaContrasenaHash, usuario_id]);
+        await pool.query(
+            "UPDATE usuarios SET contrasena_hash = $1, actualizado_en = now() WHERE id = $2",
+            [novaContrasenaHash, usuario_id]
+        );
 
         res.json({ mensaje: "✅ Contrasenya actualitzada correctament!" });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ error: "Error intern del servidor." });
     }
 });
@@ -103,10 +118,14 @@ router.post("/:id/profile-picture", authMiddleware, upload.single("profileImage"
     const imagePath = `/uploads/${req.file.filename}`;
 
     try {
-        await pool.query("UPDATE usuarios SET foto_url = $1 WHERE id = $2", [imagePath, usuario_id]);
+        await pool.query(
+            "UPDATE usuarios SET foto_url = $1, actualizado_en = now() WHERE id = $2",
+            [imagePath, usuario_id]
+        );
 
         res.json({ mensaje: "✅ Foto de perfil actualitzada!", foto_url: imagePath });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ error: "❌ Error canviant la foto de perfil." });
     }
 });
