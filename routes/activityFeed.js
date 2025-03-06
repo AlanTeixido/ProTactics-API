@@ -20,7 +20,7 @@ router.get("/", authMiddleware, async (req, res) => {
         `);
         res.json(result.rows);
     } catch (error) {
-        console.error("❌ Error obtenint activitats recents:", error);
+        console.error("❌ Error obtenint activitats recents:", error.message);
         res.status(500).json({ error: "❌ Error obtenint les activitats recents." });
     }
 });
