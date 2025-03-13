@@ -12,6 +12,10 @@ router.post('/:id/seguir', async (req, res) => {
     const { id } = req.params; // ID del usuario a seguir
     const { seguidor_id } = req.body; // ID del usuario que sigue
 
+    if (!seguidor_id) {
+        return res.status(400).json({ error: "El ID del seguidor es requerido." });
+    }
+
     try {
         await pool.query(
             `INSERT INTO seguimientos (seguidor_id, seguido_id) 
@@ -29,6 +33,10 @@ router.post('/:id/seguir', async (req, res) => {
 router.delete('/:id/dejar-seguir', async (req, res) => {
     const { id } = req.params; // ID del usuario a dejar de seguir
     const { seguidor_id } = req.body; // ID del usuario que deja de seguir
+
+    if (!seguidor_id) {
+        return res.status(400).json({ error: "El ID del seguidor es requerido." });
+    }
 
     try {
         await pool.query(

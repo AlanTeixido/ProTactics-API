@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 
-// 🔹 Importació de les rutes
+// 🔹 Importación de rutas
 const authRoutes = require("./routes/auth");
 const usuariosRoutes = require("./routes/usuarios");
 const postsRoutes = require("./routes/posts");
@@ -11,16 +11,15 @@ const historialEntrenamientosRoutes = require("./routes/historialEntrenamientos"
 const logsActividadesRoutes = require("./routes/logsActividades");
 const userStatsRoutes = require("./routes/userStats");
 const activityFeedRoutes = require("./routes/activityFeed");
-const seguimientosRoutes = require('./routes/seguimientos'); 
-
+const seguimientosRoutes = require('./routes/seguimientos');
 
 const app = express();
 
 // 🔹 Middleware
-app.use(express.json()); // Per treballar amb JSON
-app.use(cors()); // Permet peticions des del frontend
+app.use(express.json()); // Para manejar JSON
+app.use(cors()); // Permite peticiones del frontend
 
-// 🔹 Assignació de rutes
+// 🔹 Asignación de rutas
 app.use("/auth", authRoutes);
 app.use("/usuarios", usuariosRoutes);
 app.use("/posts", postsRoutes);
@@ -30,14 +29,13 @@ app.use("/historial_entrenamientos", historialEntrenamientosRoutes);
 app.use("/logs_actividades", logsActividadesRoutes);
 app.use("/user_stats", userStatsRoutes);
 app.use("/activity_feed", activityFeedRoutes);
-app.use('/seguimientos', seguimientosRoutes); 
+app.use('/seguimientos', seguimientosRoutes);
 
-
-// 🔹 Ruta principal per comprovar el funcionament de l'API
+// 🔹 Ruta principal para probar la API
 app.get("/", (req, res) => {
-    res.send("🔥 API de ProTactics en funcionament!");
+    res.send("🔥 API de ProTactics funcionando!");
 });
 
-// 🔹 Arrencada del servidor
+// 🔹 Arrancar el servidor
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`✅ Servidor en marxa a http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`✅ Servidor corriendo en http://localhost:${PORT}`));
