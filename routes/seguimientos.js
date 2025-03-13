@@ -7,10 +7,46 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
+// ✅ Obtener todos los posts con datos de usuario
+router.get('/posts', async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT p.id, p.titol, p.contingut, p.image_url, p.creat_en, 
+                   p.likes_count, p.liked_by_user, 
+                   u.id AS usuario_id, u.nombre_usuario 
+            FROM posts p
+            JOIN usuarios u ON p.usuario_id = u.id
+            ORDER BY p.creat_en DESC;
+        `);
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ✅ Obtener posts de un usuario específico
+router.get('/posts/user/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await pool.query(`
+            SELECT p.id, p.titol, p.contingut, p.image_url, p.creat_en, 
+                   p.likes_count, p.liked_by_user, 
+                   u.id AS usuario_id, u.nombre_usuario 
+            FROM posts p
+            JOIN usuarios u ON p.usuario_id = u.id
+            WHERE p.usuario_id = $1
+            ORDER BY p.creat_en DESC;
+        `, [id]);
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // ✅ Seguir a un usuario
 router.post('/:id/seguir', async (req, res) => {
-    const { id } = req.params; // ID del usuario a seguir
-    const { seguidor_id } = req.body; // ID del usuario que sigue
+    const { id } = req.params;
+    const { seguidor_id } = req.body;
 
     if (!seguidor_id) {
         return res.status(400).json({ error: "El ID del seguidor es requerido." });
@@ -31,8 +67,8 @@ router.post('/:id/seguir', async (req, res) => {
 
 // ✅ Dejar de seguir a un usuario
 router.delete('/:id/dejar-seguir', async (req, res) => {
-    const { id } = req.params; // ID del usuario a dejar de seguir
-    const { seguidor_id } = req.body; // ID del usuario que deja de seguir
+    const { id } = req.params;
+    const { seguidor_id } = req.body;
 
     if (!seguidor_id) {
         return res.status(400).json({ error: "El ID del seguidor es requerido." });
@@ -49,7 +85,7 @@ router.delete('/:id/dejar-seguir', async (req, res) => {
     }
 });
 
-// ✅ Obtener la lista de usuarios que sigue un usuario
+// ✅ Obtener la lista de usuarios seguidos por un usuario
 router.get('/:id/seguidos', async (req, res) => {
     const { id } = req.params;
 
