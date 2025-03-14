@@ -1,25 +1,43 @@
 const express = require("express");
 const { Pool } = require("pg");
+
 const router = express.Router();
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
 });
 
-// 🔹 Obtener todos los posts con datos de usuario
+// 🔹 Obtener todos los posts con datos de usuario y su seguimiento
 router.get("/posts", async (req, res) => {
+    const { usuario_id } = req.query; // El usuario autenticado se pasa como query param (opcional)
+
     try {
-        const result = await pool.query(`
-            SELECT p.id, p.titol, p.contingut, p.image_url, p.creat_en, 
-                   p.likes_count, p.liked_by_user, 
-                   u.id AS usuario_id, u.nombre_usuario 
-            FROM posts p
-            JOIN usuarios u ON p.usuario_id = u.id
-            ORDER BY p.creat_en DESC;
-        `);
+        const query = `
+            SELECT posts.id, posts.titol, posts.contingut, posts.image_url, posts.creat_en,
+                usuarios.nombre_usuario,
+                COALESCE(entrenamientos.visibilidad, 'publico') AS visibilidad,
+                (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id) AS likes_count,
+                (SELECT EXISTS (
+                    SELECT 1 FROM likes 
+                    WHERE likes.post_id = posts.id 
+                    AND likes.usuario_id = $1
+                )) AS liked_by_user,
+                (SELECT EXISTS (
+                    SELECT 1 FROM seguimientos 
+                    WHERE seguimientos.seguidor_id = $1 
+                    AND seguimientos.seguido_id = posts.usuario_id
+                )) AS is_following
+            FROM posts
+            JOIN usuarios ON posts.usuario_id = usuarios.id
+            LEFT JOIN entrenamientos ON posts.entrenamiento_id = entrenamientos.id
+            WHERE (entrenamientos.visibilidad = 'publico' OR entrenamientos.visibilidad IS NULL)
+            ORDER BY posts.creat_en DESC;
+        `;
+        
+        const result = await pool.query(query, [usuario_id || null]);  // Si no hay usuario, no se compara con likes ni seguidores
         res.json(result.rows);
     } catch (error) {
-        console.error("❌ Error obteniendo los posts:", error.message);
+        console.error("❌ Error obteniendo los posts públicos:", error);
         res.status(500).json({ error: "❌ Error obteniendo los posts." });
     }
 });
@@ -27,16 +45,23 @@ router.get("/posts", async (req, res) => {
 // 🔹 Obtener posts de un usuario específico
 router.get("/posts/user/:id", async (req, res) => {
     const { id } = req.params;
+
     try {
-        const result = await pool.query(`
-            SELECT p.id, p.titol, p.contingut, p.image_url, p.creat_en, 
-                   p.likes_count, p.liked_by_user, 
-                   u.id AS usuario_id, u.nombre_usuario 
-            FROM posts p
-            JOIN usuarios u ON p.usuario_id = u.id
-            WHERE p.usuario_id = $1
-            ORDER BY p.creat_en DESC;
-        `, [id]);
+        const query = `
+            SELECT posts.*, usuarios.nombre_usuario,
+                (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id) AS likes_count,
+                (SELECT EXISTS (
+                    SELECT 1 FROM seguimientos 
+                    WHERE seguimientos.seguidor_id = $1 
+                    AND seguimientos.seguido_id = posts.usuario_id
+                )) AS is_following
+            FROM posts 
+            LEFT JOIN usuarios ON posts.usuario_id = usuarios.id 
+            WHERE posts.usuario_id = $1
+            ORDER BY posts.creat_en DESC;
+        `;
+        const result = await pool.query(query, [id]);
+
         res.json(result.rows);
     } catch (error) {
         console.error("❌ Error obteniendo los posts de usuario:", error.message);
