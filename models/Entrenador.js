@@ -1,29 +1,24 @@
-import mongoose from 'mongoose';
+const db = require('../requests/db');
 
-const entrenadorSchema = new mongoose.Schema({
-  nombre: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  correo: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-    trim: true
-  },
-  password: {
-    type: String,
-    required: true
-  },
-  // Puedes añadir más campos si quieres: deporte, nivel, club asociado, etc.
-  creadoEn: {
-    type: Date,
-    default: Date.now
-  }
-});
+// Crear entrenador
+const crearEntrenador = async (nombre, correo, password) => {
+  const result = await db.query(
+    'INSERT INTO entrenadores (nombre, correo, password) VALUES ($1, $2, $3) RETURNING *',
+    [nombre, correo, password]
+  );
+  return result.rows[0];
+};
 
-const Entrenador = mongoose.model('Entrenador', entrenadorSchema);
+// Buscar entrenador por correo
+const buscarPorCorreo = async (correo) => {
+  const result = await db.query(
+    'SELECT * FROM entrenadores WHERE correo = $1',
+    [correo]
+  );
+  return result.rows[0];
+};
 
-export default Entrenador;
+module.exports = {
+  crearEntrenador,
+  buscarPorCorreo
+};
