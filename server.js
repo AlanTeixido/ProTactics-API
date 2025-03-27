@@ -3,7 +3,6 @@ const cors = require("cors");
 
 // 🔹 Importación de rutas
 const authRoutes = require("./routes/auth");
-const usuariosRoutes = require("./routes/usuarios");
 const postsRoutes = require("./routes/posts");
 const entrenamientosRoutes = require("./routes/entrenamientos");
 const progresoEntrenamientosRoutes = require("./routes/progresoEntrenamientos");
@@ -12,16 +11,17 @@ const logsActividadesRoutes = require("./routes/logsActividades");
 const userStatsRoutes = require("./routes/userStats");
 const activityFeedRoutes = require("./routes/activityFeed");
 const seguimientosRoutes = require('./routes/seguimientos');
+const entrenadoresRoutes = require('./routes/entrenadores');
+const clubsRoutes = require('./routes/clubs');
 
 const app = express();
 
 // 🔹 Middleware
-app.use(express.json()); // Para manejar JSON
-app.use(cors()); // Permite peticiones del frontend
+app.use(express.json());
+app.use(cors());
 
-// 🔹 Asignación de rutas
+// 🔹 Rutas de la API
 app.use("/auth", authRoutes);
-app.use("/usuarios", usuariosRoutes);
 app.use("/posts", postsRoutes);
 app.use("/entrenamientos", entrenamientosRoutes);
 app.use("/progreso_entrenamientos", progresoEntrenamientosRoutes);
@@ -29,13 +29,15 @@ app.use("/historial_entrenamientos", historialEntrenamientosRoutes);
 app.use("/logs_actividades", logsActividadesRoutes);
 app.use("/user_stats", userStatsRoutes);
 app.use("/activity_feed", activityFeedRoutes);
-app.use('/seguimientos', seguimientosRoutes);
+app.use("/seguimientos", seguimientosRoutes);
+app.use("/entrenadores", entrenadoresRoutes);   
+app.use("/clubes", clubsRoutes);               
 
-// 🔹 Ruta principal para probar la API
+// 🔹 Ruta principal
 app.get("/", (req, res) => {
     res.send("🔥 API de ProTactics funcionando!");
 });
 
-// 🔹 Arrancar el servidor
+// 🔹 Arrancar servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`✅ Servidor corriendo en http://localhost:${PORT}`));
