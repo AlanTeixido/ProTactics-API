@@ -1,10 +1,11 @@
 const { crearEntrenador, buscarPorCorreo } = require('../models/Entrenador');
 
 const registrarEntrenador = async (req, res) => {
-  const { nombre, correo, password } = req.body;
+  const { nombre, correo, password, equipo } = req.body;
+  const club_id = req.user.id;  
 
-  if (!nombre || !correo || !password) {
-    return res.status(400).json({ error: 'Falten dades obligatòries.' });
+  if (!nombre || !correo || !password || !equipo) {
+    return res.status(400).json({ error: 'Tots els camps són obligatoris.' });
   }
 
   try {
@@ -13,7 +14,9 @@ const registrarEntrenador = async (req, res) => {
       return res.status(409).json({ error: 'Ja existeix un entrenador amb aquest correu.' });
     }
 
-    const nuevoEntrenador = await crearEntrenador(nombre, correo, password);
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const nuevoEntrenador = await crearEntrenador(nombre, correo, hashedPassword, equipo, club_id);
+
     res.status(201).json({
       message: 'Entrenador creat correctament',
       entrenador: nuevoEntrenador
