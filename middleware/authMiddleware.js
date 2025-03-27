@@ -8,10 +8,15 @@ module.exports = (req, res, next) => {
     }
 
     try {
-        const verified = jwt.verify(token.split(" ")[1], process.env.JWT_SECRET);
-        req.user = verified; // El token ja conté `id` de l'usuari
+        const decoded = jwt.verify(token.split(" ")[1], process.env.JWT_SECRET);
+        req.user = {
+            id: decoded.id,
+            tipo: decoded.tipo,        // "club" o "entrenador"
+            correo: decoded.correo
+        };
         next();
     } catch (error) {
+        console.error("❌ Error verificant token:", error);
         res.status(400).json({ error: "Token invàlid." });
     }
 };
