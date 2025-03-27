@@ -1,43 +1,31 @@
 const express = require("express");
 const cors = require("cors");
+require("dotenv").config(); // Per llegir .env
 
-// 🔹 Importación de rutas
+// 🔹 Importació de rutes
 const authRoutes = require("./routes/auth");
-const postsRoutes = require("./routes/posts");
-const entrenamientosRoutes = require("./routes/entrenamientos");
-const progresoEntrenamientosRoutes = require("./routes/progresoEntrenamientos");
-const historialEntrenamientosRoutes = require("./routes/historialEntrenamientos");
-const logsActividadesRoutes = require("./routes/logsActividades");
-const userStatsRoutes = require("./routes/userStats");
-const activityFeedRoutes = require("./routes/activityFeed");
-const seguimientosRoutes = require('./routes/seguimientos');
-const entrenadoresRoutes = require('./routes/entrenadores');
-const clubsRoutes = require('./routes/clubs');
+const clubsRoutes = require("./routes/clubs");
+const entrenadoresRoutes = require("./routes/entrenadores");
+// 🔜 Aquí pots afegir més rutes en el futur (posts, entrenamientos, etc.)
 
 const app = express();
 
-// 🔹 Middleware
-app.use(express.json());
+// 🔹 Middleware global
 app.use(cors());
+app.use(express.json());
 
-// 🔹 Rutas de la API
-app.use("/auth", authRoutes);
-app.use("/posts", postsRoutes);
-app.use("/entrenamientos", entrenamientosRoutes);
-app.use("/progreso_entrenamientos", progresoEntrenamientosRoutes);
-app.use("/historial_entrenamientos", historialEntrenamientosRoutes);
-app.use("/logs_actividades", logsActividadesRoutes);
-app.use("/user_stats", userStatsRoutes);
-app.use("/activity_feed", activityFeedRoutes);
-app.use("/seguimientos", seguimientosRoutes);
-app.use("/entrenadores", entrenadoresRoutes);   
-app.use("/clubes", clubsRoutes);               
+// 🔹 Rutes de la API
+app.use("/auth", authRoutes);                  // login i register per club/entrenador
+app.use("/clubes", clubsRoutes);               // gestió de clubs
+app.use("/entrenadores", entrenadoresRoutes);  // gestió d'entrenadors
 
-// 🔹 Ruta principal
+// 🔹 Ruta arrel per verificar que la API funciona
 app.get("/", (req, res) => {
-    res.send("🔥 API de ProTactics funcionando!");
+  res.send("🚀 API de ProTactics operativa!");
 });
 
-// 🔹 Arrancar servidor
+// 🔹 Arrencar el servidor
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`✅ Servidor corriendo en http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`✅ Servidor escoltant a http://localhost:${PORT}`);
+});
