@@ -28,9 +28,10 @@ const registrarEntrenador = async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Error creant entrenador:", error);
-    res.status(500).json({ error: 'Error del servidor.' });
+    res.status(500).json({ error: 'Error del servidor.', message: error.message, stack: error.stack });
   }
 };
+
 
 
 module.exports = {
