@@ -1,5 +1,6 @@
 const { crearEntrenador, buscarPorCorreo } = require('../models/Entrenador');
 
+ 
 const registrarEntrenador = async (req, res) => {
   const { nombre, correo, password, equipo } = req.body;
   const club_id = req.user.id;
