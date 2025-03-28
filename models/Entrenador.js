@@ -9,7 +9,7 @@ const crearEntrenador = async (nombre, correo, password, equipo, club_id) => {
   return result.rows[0];
 };
 
-// Buscar entrenador per correu
+// Buscar entrenador por correo
 const buscarPorCorreo = async (correo) => {
   const result = await db.query(
     'SELECT * FROM entrenadores WHERE correo = $1',
