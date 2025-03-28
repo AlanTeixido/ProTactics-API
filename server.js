@@ -6,6 +6,7 @@ require("dotenv").config(); // Para leer .env
 const authRoutes = require("./routes/auth");
 const clubsRoutes = require("./routes/clubs");
 const entrenadoresRoutes = require("./routes/entrenadores");
+const jugadoresRoutes = require("./routes/jugadores");  // Nueva ruta para jugadores
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use(express.json());
 app.use("/auth", authRoutes);                  // Login y registro para club/entrenador
 app.use("/clubes", clubsRoutes);               // Gestión de clubes
 app.use("/entrenadores", entrenadoresRoutes);  // Gestión de entrenadores
+app.use("/jugadores", jugadoresRoutes);        // Gestión de jugadores
 
 // 🔹 Ruta raíz para verificar que la API funciona
 app.get("/", (req, res) => {
