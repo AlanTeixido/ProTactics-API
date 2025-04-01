@@ -12,4 +12,8 @@ router.post('/register', authMiddleware, registrarJugador);
 // Obtenir jugadors
 router.get('/', authMiddleware, obtenerJugadoresPorEntrenador);
 
+// Borra jugador
+router.delete('/:id', authMiddleware, eliminarJugador);
+
+
 module.exports = router;

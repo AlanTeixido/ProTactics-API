@@ -42,7 +42,21 @@ const obtenerJugadoresPorEntrenador = async (req, res) => {
   }
 };
 
+const eliminarJugador = async (req, res) => {
+  const { id } = req.params;
+  const entrenador_id = req.user.id;
+
+  try {
+    await eliminarJugadorPorId(id, entrenador_id);
+    res.json({ message: 'Jugador eliminat correctament' });
+  } catch (error) {
+    console.error('❌ Error eliminant jugador:', error);
+    res.status(500).json({ error: 'Error del servidor.' });
+  }
+};
+
 module.exports = {
   registrarJugador,
-  obtenerJugadoresPorEntrenador
+  obtenerJugadoresPorEntrenador,
+  eliminarJugador
 };

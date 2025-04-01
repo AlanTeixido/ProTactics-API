@@ -25,8 +25,17 @@ const obtenerJugadoresDelEntrenador = async (entrenador_id) => {
   return result.rows;
 };
 
+
+const eliminarJugadorPorId = async (jugador_id, entrenador_id) => {
+  await db.query(
+    'DELETE FROM jugadores WHERE jugador_id = $1 AND entrenador_id = $2',
+    [jugador_id, entrenador_id]
+  );
+};
+
 module.exports = {
   crearJugador,
   buscarJugadorPorDorsal,
-  obtenerJugadoresDelEntrenador
+  obtenerJugadoresDelEntrenador,
+  eliminarJugadorPorId
 };
