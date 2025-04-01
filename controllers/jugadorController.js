@@ -1,8 +1,11 @@
 const {
   crearJugador,
   buscarJugadorPorDorsal,
-  obtenerJugadoresDelEntrenador
+  obtenerJugadoresDelEntrenador,
+  eliminarJugadorPorId
 } = require('../models/Jugador');
+
+
 
 const registrarJugador = async (req, res) => {
   const { nombre, apellido, dorsal, posicion } = req.body;

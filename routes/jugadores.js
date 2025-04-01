@@ -2,8 +2,10 @@ const express = require('express');
 const router = express.Router();
 const {
   registrarJugador,
-  obtenerJugadoresPorEntrenador
-} = require('../controllers/jugadorController');
+  obtenerJugadoresPorEntrenador,
+  eliminarJugador
+} = require('../controllers/jugadorController'); 
+
 const authMiddleware = require('../middleware/authMiddleware');
 
 // Crear jugador
