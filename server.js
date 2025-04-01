@@ -6,25 +6,27 @@ require("dotenv").config(); // Para leer .env
 const authRoutes = require("./routes/auth");
 const clubsRoutes = require("./routes/clubs");
 const entrenadoresRoutes = require("./routes/entrenadores");
-const jugadoresRoutes = require("./routes/jugadores");  // Nueva ruta para jugadores
+const jugadoresRoutes = require("./routes/jugadores");
+const publicacionesRoutes = require("./routes/publicaciones"); 
 
 const app = express();
 
 // 🔹 Configuración CORS para permitir solicitudes solo desde localhost:5173
 const corsOptions = {
-  origin: 'http://localhost:5173',  // Especifica tu frontend aquí
-  methods: 'GET, POST, PUT, DELETE',  // Métodos permitidos
-  allowedHeaders: 'Content-Type, Authorization',  // Cabeceras permitidas
+  origin: 'http://localhost:5173',
+  methods: 'GET, POST, PUT, DELETE',
+  allowedHeaders: 'Content-Type, Authorization',
 };
 
-app.use(cors(corsOptions));  // Aplica la configuración de CORS
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // 🔹 Rutas de la API
-app.use("/auth", authRoutes);                  // Login y registro para club/entrenador
-app.use("/clubes", clubsRoutes);               // Gestión de clubes
-app.use("/entrenadores", entrenadoresRoutes);  // Gestión de entrenadores
-app.use("/jugadores", jugadoresRoutes);        // Gestión de jugadores
+app.use("/auth", authRoutes);
+app.use("/clubes", clubsRoutes);
+app.use("/entrenadores", entrenadoresRoutes);
+app.use("/jugadores", jugadoresRoutes);
+app.use("/publicaciones", publicacionesRoutes); 
 
 // 🔹 Ruta raíz para verificar que la API funciona
 app.get("/", (req, res) => {
