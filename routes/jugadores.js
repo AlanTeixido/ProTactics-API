@@ -1,10 +1,15 @@
-// routes/jugadores.js
 const express = require('express');
 const router = express.Router();
-const { registrarJugador } = require('../controllers/jugadorController');
+const {
+  registrarJugador,
+  obtenerJugadoresPorEntrenador
+} = require('../controllers/jugadorController');
 const authMiddleware = require('../middleware/authMiddleware');
 
-// Ruta protegida para crear jugadores
+// Crear jugador
 router.post('/register', authMiddleware, registrarJugador);
+
+// Obtenir jugadors
+router.get('/', authMiddleware, obtenerJugadoresPorEntrenador);
 
 module.exports = router;
