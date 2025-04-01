@@ -28,10 +28,11 @@ const login = async (req, res) => {
     res.status(200).json({
       token,
       id: user.id,
-      correo: user.correo,
+      email: user.correo, 
       nombre: user.nombre,
       rol,
     });
+    
   } catch (err) {
     console.error('❌ Error en login:', err);
     res.status(500).json({ error: 'Error interno del servidor' });
