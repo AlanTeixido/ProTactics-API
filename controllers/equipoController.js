@@ -40,11 +40,11 @@ const {
   };
   
   const editarEquipo = async (req, res) => {
-    const { id, rol } = req.user;
+    const { id, tipo } = req.user;
     const equipo_id = req.params.id;
     const { nombre, categoria } = req.body;
   
-    if (rol !== 'club') {
+    if (tipo !== 'club') {
       return res.status(403).json({ error: 'No tens permís per editar equips.' });
     }
   
@@ -58,10 +58,10 @@ const {
   };
   
   const eliminarEquipo = async (req, res) => {
-    const { id, rol } = req.user;
+    const { id, tipo } = req.user;
     const equipo_id = req.params.id;
   
-    if (rol !== 'club') {
+    if (tipo !== 'club') {
       return res.status(403).json({ error: 'No tens permís per eliminar equips.' });
     }
   
@@ -72,7 +72,7 @@ const {
       console.error('❌ Error eliminant equip:', error);
       res.status(500).json({ error: 'Error del servidor.' });
     }
-  };
+  };  
   
   module.exports = {
     crearEquipoController,
