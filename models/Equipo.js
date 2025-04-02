@@ -1,27 +1,25 @@
 const db = require('../requests/db');
 
 const crearEquipo = async (nombre, categoria, club_id) => {
-    // 🔎 Busca un entrenador del club (pots millorar la lògica si tens més d’un entrenador)
-    const resultEntrenador = await db.query(
-      'SELECT entrenador_id FROM entrenadores WHERE club_id = $1 LIMIT 1',
-      [club_id]
-    );
-  
-    if (resultEntrenador.rows.length === 0) {
-      throw new Error('No s\'ha trobat cap entrenador pel club');
-    }
-  
-    const entrenador_id = resultEntrenador.rows[0].entrenador_id;
-  
-    const result = await db.query(
-      'INSERT INTO equipos (nombre, categoria, entrenador_id, club_id) VALUES ($1, $2, $3, $4) RETURNING *',
-      [nombre, categoria, entrenador_id, club_id]
-    );
-  
-    return result.rows[0];
-  };
-  
-  
+  const resultEntrenador = await db.query(
+    'SELECT entrenador_id FROM entrenadores WHERE club_id = $1 LIMIT 1',
+    [club_id]
+  );
+
+  if (resultEntrenador.rows.length === 0) {
+    throw new Error('No s\'ha trobat cap entrenador pel club');
+  }
+
+  const entrenador_id = resultEntrenador.rows[0].entrenador_id;
+
+  const result = await db.query(
+    'INSERT INTO equipos (nombre, categoria, entrenador_id, club_id) VALUES ($1, $2, $3, $4) RETURNING *',
+    [nombre, categoria, entrenador_id, club_id]
+  );
+
+  return result.rows[0];
+};
+
 const obtenerEquiposDelClub = async (club_id) => {
   const result = await db.query(
     `SELECT e.*, en.nombre AS entrenador_nombre
@@ -30,6 +28,14 @@ const obtenerEquiposDelClub = async (club_id) => {
      WHERE en.club_id = $1
      ORDER BY e.creado_en DESC`,
     [club_id]
+  );
+  return result.rows;
+};
+
+const obtenerEquiposDelEntrenador = async (entrenador_id) => {
+  const result = await db.query(
+    'SELECT * FROM equipos WHERE entrenador_id = $1 ORDER BY creado_en DESC',
+    [entrenador_id]
   );
   return result.rows;
 };
@@ -58,6 +64,7 @@ const eliminarEquipoDB = async (equipo_id, club_id) => {
 module.exports = {
   crearEquipo,
   obtenerEquiposDelClub,
+  obtenerEquiposDelEntrenador,
   actualizarEquipoDB,
   eliminarEquipoDB
 };
