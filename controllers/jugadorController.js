@@ -16,8 +16,8 @@ const registrarJugador = async (req, res) => {
   }
 
   try {
-    const existe = await buscarJugadorPorDorsal(dorsal);
-    if (existe && existe.entrenador_id === entrenador_id) {
+    const existe = await buscarJugadorPorDorsal(dorsal, entrenador_id);
+    if (existe) {
       return res.status(409).json({ error: 'Ja existeix un jugador amb aquest dorsal.' });
     }
 
@@ -74,8 +74,8 @@ const actualizarJugador = async (req, res) => {
   const { nombre, apellido, posicion, dorsal, equipo_id } = req.body;
 
   try {
-    const jugadorConMismoDorsal = await buscarJugadorPorDorsal(dorsal);
-    if (jugadorConMismoDorsal && jugadorConMismoDorsal.jugador_id != id && jugadorConMismoDorsal.entrenador_id === entrenador_id) {
+    const jugadorConMismoDorsal = await buscarJugadorPorDorsal(dorsal, entrenador_id);
+    if (jugadorConMismoDorsal && jugadorConMismoDorsal.jugador_id != id) {
       return res.status(409).json({ error: 'Ja existeix un altre jugador amb aquest dorsal.' });
     }
 

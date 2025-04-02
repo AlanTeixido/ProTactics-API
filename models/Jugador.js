@@ -9,10 +9,11 @@ const crearJugador = async (nombre, apellido, dorsal, posicion, entrenador_id, e
   );
   return result.rows[0];
 };
-const buscarJugadorPorDorsal = async (dorsal) => {
+
+const buscarJugadorPorDorsal = async (dorsal, entrenador_id) => {
   const result = await db.query(
-    'SELECT * FROM jugadores WHERE dorsal = $1',
-    [dorsal]
+    'SELECT * FROM jugadores WHERE dorsal = $1 AND entrenador_id = $2',
+    [dorsal, entrenador_id]
   );
   return result.rows[0];
 };
@@ -48,6 +49,7 @@ const actualizarJugadorDB = async (nombre, apellido, posicion, dorsal, equipo_id
     [nombre, apellido, posicion, dorsal, equipo_id, jugador_id, entrenador_id]
   );
 };
+
 module.exports = {
   crearJugador,
   buscarJugadorPorDorsal,
