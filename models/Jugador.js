@@ -1,13 +1,14 @@
 const db = require('../requests/db');
 
-const crearJugador = async (nombre, apellido, dorsal, posicion, entrenador_id) => {
+const crearJugador = async (nombre, apellido, dorsal, posicion, entrenador_id, equipo_id) => {
   const result = await db.query(
-    'INSERT INTO jugadores (nombre, apellido, dorsal, posicion, entrenador_id) VALUES ($1, $2, $3, $4, $5) RETURNING jugador_id, nombre, apellido, dorsal, posicion, entrenador_id',
-    [nombre, apellido, dorsal, posicion, entrenador_id]
+    `INSERT INTO jugadores (nombre, apellido, dorsal, posicion, entrenador_id, equipo_id)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     RETURNING jugador_id, nombre, apellido, dorsal, posicion, entrenador_id, equipo_id`,
+    [nombre, apellido, dorsal, posicion, entrenador_id, equipo_id]
   );
   return result.rows[0];
 };
-
 const buscarJugadorPorDorsal = async (dorsal) => {
   const result = await db.query(
     'SELECT * FROM jugadores WHERE dorsal = $1',
@@ -39,13 +40,14 @@ const obtenerJugadorPorIdDB = async (jugador_id, entrenador_id) => {
   return result.rows[0];
 };
 
-const actualizarJugadorDB = async (nombre, apellido, posicion, dorsal, jugador_id, entrenador_id) => {
+const actualizarJugadorDB = async (nombre, apellido, posicion, dorsal, equipo_id, jugador_id, entrenador_id) => {
   await db.query(
-    'UPDATE jugadores SET nombre=$1, apellido=$2, posicion=$3, dorsal=$4 WHERE jugador_id=$5 AND entrenador_id=$6',
-    [nombre, apellido, posicion, dorsal, jugador_id, entrenador_id]
+    `UPDATE jugadores
+     SET nombre=$1, apellido=$2, posicion=$3, dorsal=$4, equipo_id=$5
+     WHERE jugador_id=$6 AND entrenador_id=$7`,
+    [nombre, apellido, posicion, dorsal, equipo_id, jugador_id, entrenador_id]
   );
 };
-
 module.exports = {
   crearJugador,
   buscarJugadorPorDorsal,

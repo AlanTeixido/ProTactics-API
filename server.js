@@ -8,7 +8,9 @@ const clubsRoutes = require("./routes/clubs");
 const entrenadoresRoutes = require("./routes/entrenadores");
 const jugadoresRoutes = require("./routes/jugadores");
 const publicacionesRoutes = require("./routes/publicaciones"); 
-const usuariosRoutes = require("./routes/usuarios"); // <-- ✨ NUEVO
+const usuariosRoutes = require("./routes/usuarios"); 
+const equiposRoutes = require('./routes/equipos');
+
 
 const app = express();
 
@@ -28,7 +30,9 @@ app.use("/clubes", clubsRoutes);
 app.use("/entrenadores", entrenadoresRoutes);
 app.use("/jugadores", jugadoresRoutes);
 app.use("/publicaciones", publicacionesRoutes); 
-app.use("/usuarios", usuariosRoutes); // <-- ✨ NUEVO
+app.use("/usuarios", usuariosRoutes); 
+app.use('/equipos', equiposRoutes);
+
 
 // 🔹 Ruta raíz para verificar que la API funciona
 app.get("/", (req, res) => {
