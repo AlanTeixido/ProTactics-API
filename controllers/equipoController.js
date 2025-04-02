@@ -7,11 +7,12 @@ const {
   
   const crearEquipoController = async (req, res) => {
     const { nombre, categoria } = req.body;
-    const { id, rol } = req.user;
-  
-    if (rol !== 'club') {
+    const { id, tipo } = req.user;
+
+    if (tipo !== 'club') {
       return res.status(403).json({ error: 'No tens permís per crear equips.' });
     }
+    
   
     if (!nombre || !categoria) {
       return res.status(400).json({ error: 'Falten camps obligatoris.' });
