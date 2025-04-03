@@ -9,7 +9,7 @@ const {
   } = require('../models/Entrenamiento');
   
   const crearEntrenamientoController = async (req, res) => {
-    console.log('📥 Dades rebudes:', req.body); // Mostrar el contingut per a depuració
+    console.log('📥 Dades rebudes:', req.body); // Veure les dades rebudes
   
     const entrenador_id = req.user.id;
     const {
@@ -19,7 +19,6 @@ const {
     } = req.body;
   
     try {
-      // Passar la duració com a interval a la base de dades
       const nuevo = await crearEntrenamiento(
         entrenador_id, titulo, descripcion, categoria, campo,
         fecha_entrenamiento, duracion_repeticion, repeticiones,
@@ -36,6 +35,7 @@ const {
       res.status(500).json({ error: 'Error del servidor' });
     }
   };
+  
   
   
   const listarEntrenamientos = async (req, res) => {

@@ -6,6 +6,7 @@ const crearEntrenamiento = async (
     descanso, valoracion, imagen_url, notas
   ) => {
     if (typeof duracion_repeticion === 'object' && duracion_repeticion.minutes) {
+      // Asegura't que duracion_repeticion sigui un string en format interval
       duracion_repeticion = `${duracion_repeticion.minutes} minutes`;
     }
   
@@ -24,6 +25,7 @@ const crearEntrenamiento = async (
     );
     return result.rows[0];
   };
+  
   
 
 const relacionarJugadores = async (entrenamiento_id, jugadores) => {
