@@ -12,16 +12,18 @@ const {
     const entrenador_id = req.user.id;
     const {
       titulo, descripcion, categoria, campo, fecha_entrenamiento,
-      duracion_repeticion, repeticiones, descanso, valoracion, imagen, notas, jugadores
+      duracion_repeticion, repeticiones, descanso,
+      valoracion, imagen_url, notas, jugadores
     } = req.body;
   
     try {
       const nuevo = await crearEntrenamiento(
-        entrenador_id, titulo, descripcion, categoria, campo, fecha_entrenamiento,
-        duracion_repeticion, repeticiones, descanso, valoracion, imagen, notas
+        entrenador_id, titulo, descripcion, categoria, campo,
+        fecha_entrenamiento, duracion_repeticion, repeticiones,
+        descanso, valoracion, imagen_url, notas
       );
   
-      if (jugadores?.length) {
+      if (jugadores && jugadores.length > 0) {
         await relacionarJugadores(nuevo.entrenamiento_id, jugadores);
       }
   
@@ -37,7 +39,7 @@ const {
       const lista = await obtenerEntrenamientosPorEntrenador(req.user.id);
       res.json(lista);
     } catch (error) {
-      console.error('❌ Error obteniendo entrenamientos:', error);
+      console.error('❌ Error listando entrenamientos:', error);
       res.status(500).json({ error: 'Error del servidor' });
     }
   };
