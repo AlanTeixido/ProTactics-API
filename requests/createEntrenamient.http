@@ -1,106 +1,25 @@
 ### Provar que l'API d'entrenaments està activa
 GET https://protactics-api.onrender.com/entrenamientos
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywidGlwbyI6ImVudHJlbmFkb3IiLCJjb3JyZW8iOiJhZHJpYW5AZ21haWwuY29tIiwiaWF0IjoxNzQzNjE1OTc2LCJleHAiOjE3NDM3MDIzNzZ9.CdpgmLyzOaiXc_TQckQwCitT1RzU_351-sjSsJl6ljs
+Content-Type: application/json
 
-
-### Crear un entrenament de ciclisme (correcte)
+####
 POST https://protactics-api.onrender.com/entrenamientos
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Nywibm9tYnJlX3VzdWFyaW8iOiJBTEFOIiwiY29ycmVvIjoiYWxhbjFAZ21haWwuY29tIiwiaWF0IjoxNzQxMTkxNzA4LCJleHAiOjE3NDEyNzgxMDh9.oxNLPE2zxXg20KOh5ywFHHoX-xadrCQyD5_JPe1x9t8
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywidGlwbyI6ImVudHJlbmFkb3IiLCJjb3JyZW8iOiJhZHJpYW5AZ21haWwuY29tIiwiaWF0IjoxNzQzNjE1OTc2LCJleHAiOjE3NDM3MDIzNzZ9.CdpgmLyzOaiXc_TQckQwCitT1RzU_351-sjSsJl6ljs
 Content-Type: application/json
 
 {
-    "titulo": "Ruta matinal",
-    "descripcion": "Sortida en bici pel Garraf",
-    "tipo_deporte": "ciclismo",
-    "duracion": {"minutes": 120},
-    "distancia": 55.3,
-    "calorias_quemadas": 1200,
-    "inicio": "2025-03-01T08:00:00Z",
-    "fin": "2025-03-01T10:00:00Z",
-    "visibilidad": "publico",
-    "detalles": {
-        "potencia_media": 200,
-        "cadencia": 90,
-        "velocidad_maxima": 45
-    }
+  "titulo": "Entreno de Prova Curl",
+  "descripcion": "Entrenament provant el curl amb el backend",
+  "categoria": "Tècnica",
+  "campo": "Camp Fut7",
+  "fecha_entrenamiento": "2025-04-04",
+  "duracion_repeticion": "15 minutes", 
+  "repeticiones": 3,
+  "descanso": 5,
+  "valoracion": 4,
+  "imagen_url": "https://url.fake/image.png",
+  "notas": "Prova feta des del terminal",
+  "jugadores": [1, 2]
 }
 
-
-### Crear un entrenament de gimnàs (correcte)
-POST https://protactics-api.onrender.com/entrenamientos
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Nywibm9tYnJlX3VzdWFyaW8iOiJBTEFOIiwiY29ycmVvIjoiYWxhbjFAZ21haWwuY29tIiwiaWF0IjoxNzQxMTkxNzA4LCJleHAiOjE3NDEyNzgxMDh9.oxNLPE2zxXg20KOh5ywFHHoX-xadrCQyD5_JPe1x9t8
-Content-Type: application/json
-
-{
-    "titulo": "Sessió Gym",
-    "descripcion": "Entrenament complet de força",
-    "tipo_deporte": "gimnasio",
-    "duracion": {"minutes": 90},
-    "inicio": "2025-03-01T17:00:00Z",
-    "fin": "2025-03-01T18:30:00Z",
-    "visibilidad": "privado",
-    "detalles": {
-        "tipo": "Pes lliure",
-        "musculos": "Pectorals, esquena, cames"
-    }
-}
-
-
-### Intent de creació d’entrenament amb camps buits (ha de fallar per validació)
-POST https://protactics-api.onrender.com/entrenamientos
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Nywibm9tYnJlX3VzdWFyaW8iOiJBTEFOIiwiY29ycmVvIjoiYWxhbjFAZ21haWwuY29tIiwiaWF0IjoxNzQxMTkxNzA4LCJleHAiOjE3NDEyNzgxMDh9.oxNLPE2zxXg20KOh5ywFHHoX-xadrCQyD5_JPe1x9t8
-Content-Type: application/json
-
-{
-    "titulo": "",
-    "descripcion": "Sense nom",
-    "tipo_deporte": "running",
-    "duracion": {"minutes": 60},
-    "inicio": "2025-03-01T09:00:00Z",
-    "visibilidad": "publico",
-    "detalles": {
-        "ritmo_medio": "5:20",
-        "altimetria": 300,
-        "zancada_media": "1.1"
-    }
-}
-
-
-### Crear entrenament d'un esport no controlat (es crea sense detalls)
-POST https://protactics-api.onrender.com/entrenamientos
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Nywibm9tYnJlX3VzdWFyaW8iOiJBTEFOIiwiY29ycmVvIjoiYWxhbjFAZ21haWwuY29tIiwiaWF0IjoxNzQxMTkxNzA4LCJleHAiOjE3NDEyNzgxMDh9.oxNLPE2zxXg20KOh5ywFHHoX-xadrCQyD5_JPe1x9t8
-Content-Type: application/json
-
-{
-    "titulo": "Partit Ultimate Frisbee",
-    "descripcion": "Partit amb els col·legues",
-    "tipo_deporte": "ultimate_frisbee",
-    "duracion": {"minutes": 90},
-    "inicio": "2025-03-01T16:00:00Z",
-    "fin": "2025-03-01T17:30:00Z",
-    "visibilidad": "publico",
-    "detalles": {}
-}
-
-
-### Crear entrenament sense token (ha de fallar amb 401 Unauthorized)
-POST https://protactics-api.onrender.com/entrenamientos
-Content-Type: application/json
-
-{
-    "titulo": "Entrenament sense token",
-    "descripcion": "Aquest ha de fallar",
-    "tipo_deporte": "running",
-    "duracion": {"minutes": 45},
-    "inicio": "2025-03-01T12:00:00Z",
-    "visibilidad": "privado",
-    "detalles": {}
-}
-
-
-### Eliminar un entrenament (correcte)
-DELETE https://protactics-api.onrender.com/entrenamientos/11
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Nywibm9tYnJlX3VzdWFyaW8iOiJBTEFOIiwiY29ycmVvIjoiYWxhbjFAZ21haWwuY29tIiwiaWF0IjoxNzQxMTkxNzA4LCJleHAiOjE3NDEyNzgxMDh9.oxNLPE2zxXg20KOh5ywFHHoX-xadrCQyD5_JPe1x9t8
-
-
-### Eliminar un entrenament sense token (ha de fallar amb 401)
-DELETE https://protactics-api.onrender.com/entrenamientos/5
