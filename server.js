@@ -10,6 +10,7 @@ const jugadoresRoutes = require("./routes/jugadores");
 const publicacionesRoutes = require("./routes/publicaciones"); 
 const usuariosRoutes = require("./routes/usuarios"); 
 const equiposRoutes = require('./routes/equipos');
+const entrenamientosRoutes = require("./routes/entrenamientos");
 
 
 const app = express();
@@ -32,6 +33,7 @@ app.use("/jugadores", jugadoresRoutes);
 app.use("/publicaciones", publicacionesRoutes); 
 app.use("/usuarios", usuariosRoutes); 
 app.use('/equipos', equiposRoutes);
+app.use("/entrenamientos", entrenamientosRoutes);
 
 
 // 🔹 Ruta raíz para verificar que la API funciona
