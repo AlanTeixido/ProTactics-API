@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middleware/authMiddleware');
 
 const {
   crearEntrenamientoController,
@@ -9,6 +8,8 @@ const {
   actualizarEntrenamientoController,
   eliminarEntrenamientoController
 } = require('../controllers/entrenamientoController');
+const authMiddleware = require('../middleware/authMiddleware');
+
 
 router.post('/', authMiddleware, crearEntrenamientoController);
 router.get('/', authMiddleware, listarEntrenamientos);
