@@ -4,7 +4,8 @@ const {
   obtenerJugadoresDelEntrenador,
   eliminarJugadorPorId,
   obtenerJugadorPorIdDB,
-  actualizarJugadorDB
+  actualizarJugadorDB,
+  obtenerJugadoresPorEquipo
 } = require('../models/Jugador');
 
 const registrarJugador = async (req, res) => {
@@ -87,10 +88,24 @@ const actualizarJugador = async (req, res) => {
   }
 };
 
+const obtenerJugadoresPorEquipoController = async (req, res) => {
+  const equipo_id = req.params.equipo_id;
+
+  try {
+    const jugadores = await obtenerJugadoresPorEquipo(equipo_id);
+    res.json(jugadores);
+  } catch (error) {
+    console.error('❌ Error obtenint jugadors per equip:', error);
+    res.status(500).json({ error: 'Error del servidor.' });
+  }
+};
+
+
 module.exports = {
   registrarJugador,
   obtenerJugadoresPorEntrenador,
   eliminarJugador,
   obtenerJugadorPorId,
-  actualizarJugador
+  actualizarJugador,
+  obtenerJugadoresPorEquipoController
 };

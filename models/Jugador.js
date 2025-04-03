@@ -50,11 +50,21 @@ const actualizarJugadorDB = async (nombre, apellido, posicion, dorsal, equipo_id
   );
 };
 
+const obtenerJugadoresPorEquipo = async (equipo_id) => {
+  const result = await db.query(
+    'SELECT * FROM jugadores WHERE equipo_id = $1 ORDER BY creado_en DESC',
+    [equipo_id]
+  );
+  return result.rows;
+};
+
+
 module.exports = {
   crearJugador,
   buscarJugadorPorDorsal,
   obtenerJugadoresDelEntrenador,
   eliminarJugadorPorId,
   obtenerJugadorPorIdDB,
-  actualizarJugadorDB
+  actualizarJugadorDB,
+  obtenerJugadoresPorEquipo
 };
