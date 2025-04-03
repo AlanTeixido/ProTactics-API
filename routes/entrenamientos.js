@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middleware/authMiddleware');
-
+const auth = require('../middleware/authMiddleware');
 const {
   crearEntrenamientoController,
   listarEntrenamientos,
@@ -10,10 +9,10 @@ const {
   eliminarEntrenamientoController
 } = require('../controllers/entrenamientoController');
 
-router.post('/', authMiddleware, crearEntrenamientoController);
-router.get('/', authMiddleware, listarEntrenamientos);
-router.get('/:id', authMiddleware, obtenerEntrenamiento);
-router.put('/:id', authMiddleware, actualizarEntrenamientoController);
-router.delete('/:id', authMiddleware, eliminarEntrenamientoController);
+router.post('/', auth, crearEntrenamientoController);
+router.get('/', auth, listarEntrenamientos);
+router.get('/:id', auth, obtenerEntrenamiento);
+router.put('/:id', auth, actualizarEntrenamientoController);
+router.delete('/:id', auth, eliminarEntrenamientoController);
 
 module.exports = router;

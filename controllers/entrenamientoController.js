@@ -12,16 +12,16 @@ const {
     const entrenador_id = req.user.id;
     const {
       titulo, descripcion, categoria, campo, fecha_entrenamiento,
-      duracion_repeticion, repeticiones, jugadores
+      duracion_repeticion, repeticiones, descanso, valoracion, imagen, notas, jugadores
     } = req.body;
   
     try {
       const nuevo = await crearEntrenamiento(
-        entrenador_id, titulo, descripcion, categoria, campo,
-        fecha_entrenamiento, duracion_repeticion, repeticiones
+        entrenador_id, titulo, descripcion, categoria, campo, fecha_entrenamiento,
+        duracion_repeticion, repeticiones, descanso, valoracion, imagen, notas
       );
   
-      if (jugadores && jugadores.length > 0) {
+      if (jugadores?.length) {
         await relacionarJugadores(nuevo.entrenamiento_id, jugadores);
       }
   
