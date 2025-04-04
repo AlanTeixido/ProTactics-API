@@ -35,7 +35,17 @@ const relacionarJugadores = async (entrenamiento_id, jugadores) => {
     );
 };
 
+const obtenerEntrenamientosPorEntrenador = async (entrenador_id) => {
+  const result = await db.query(
+    'SELECT * FROM entrenamientos WHERE entrenador_id = $1 ORDER BY creado_en DESC',
+    [entrenador_id]
+  );
+  return result.rows;
+};
+
+
 module.exports = {
     crearEntrenamiento,
-    relacionarJugadores
+    relacionarJugadores,
+    obtenerEntrenamientosPorEntrenador
 };

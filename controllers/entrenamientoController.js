@@ -1,7 +1,4 @@
-const {
-  crearEntrenamiento,
-  relacionarJugadores
-} = require('../models/Entrenamiento');
+const { crearEntrenamiento, relacionarJugadores, obtenerEntrenamientosPorEntrenador } = require('../models/Entrenamiento');
 
 const crearEntrenamientoController = async (req, res) => {
   const entrenador_id = req.user.id;
@@ -24,6 +21,19 @@ const crearEntrenamientoController = async (req, res) => {
   res.status(201).json({ message: 'Entrenamiento creado', entrenamiento: nuevoEntrenamiento });
 };
 
+const obtenerEntrenamientos = async (req, res) => {
+  const entrenador_id = req.user.id;
+
+  try {
+    const entrenamientos = await obtenerEntrenamientosPorEntrenador(entrenador_id);
+    res.status(200).json(entrenamientos);
+  } catch (error) {
+    console.error('Error obteniendo los entrenamientos:', error);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+};
+
 module.exports = {
-  crearEntrenamientoController
+  crearEntrenamientoController,
+  obtenerEntrenamientos
 };
