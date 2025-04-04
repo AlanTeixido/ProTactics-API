@@ -1,25 +1,24 @@
 ### Provar que l'API d'entrenaments està activa
 GET https://protactics-api.onrender.com/entrenamientos
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywidGlwbyI6ImVudHJlbmFkb3IiLCJjb3JyZW8iOiJhZHJpYW5AZ21haWwuY29tIiwiaWF0IjoxNzQzNjE1OTc2LCJleHAiOjE3NDM3MDIzNzZ9.CdpgmLyzOaiXc_TQckQwCitT1RzU_351-sjSsJl6ljs
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywidGlwbyI6ImVudHJlbmFkb3IiLCJjb3JyZW8iOiJhZHJpYW5AZ21haWwuY29tIiwiaWF0IjoxNzQzNzc0MTE0LCJleHAiOjE3NDM4NjA1MTR9.lP9_fwhi_BE5AextLk24npZinHiAWLc4xmYTpor-FSA
 Content-Type: application/json
 
 ####
 POST https://protactics-api.onrender.com/entrenamientos
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywidGlwbyI6ImVudHJlbmFkb3IiLCJjb3JyZW8iOiJhZHJpYW5AZ21haWwuY29tIiwiaWF0IjoxNzQzNjE1OTc2LCJleHAiOjE3NDM3MDIzNzZ9.CdpgmLyzOaiXc_TQckQwCitT1RzU_351-sjSsJl6ljs
-Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywidGlwbyI6ImVudHJlbmFkb3IiLCJjb3JyZW8iOiJhZHJpYW5AZ21haWwuY29tIiwiaWF0IjoxNzQzNzc0MTE0LCJleHAiOjE3NDM4NjA1MTR9.lP9_fwhi_BE5AextLk24npZinHiAWLc4xmYTpor-FSA
 
 {
-  "titulo": "Entreno de Prova Curl",
-  "descripcion": "Entrenament provant el curl amb el backend",
-  "categoria": "Tècnica",
-  "campo": "Camp Fut7",
+  "titulo": "Entreno de Prueba",
+  "descripcion": "Descripción del entrenamiento",
+  "categoria": "Cardio",
+  "campo": "Campo Fut7",
   "fecha_entrenamiento": "2025-04-04",
-  "duracion_repeticion": "15 minutes", 
+  "duracion_repeticion": {
+    "minutes": 15
+  },
   "repeticiones": 3,
   "descanso": 5,
   "valoracion": 4,
   "imagen_url": "https://url.fake/image.png",
-  "notas": "Prova feta des del terminal",
-  "jugadores": [1, 2]
+  "notas": "Notas sobre el entrenamiento"
 }
-
