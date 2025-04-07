@@ -42,25 +42,23 @@ router.put('/:id', authMiddleware, async (req, res) => {
   const entrenadorId = req.params.id;
 
   try {
-    if (password) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      await db.query(
-        'UPDATE entrenadores SET nombre = $1, correo = $2, password = $3, foto_url = $4, telefono = $5, notas = $6 WHERE entrenador_id = $7',
-        [nombre, correo, hashedPassword, foto_url, telefono, notas, entrenadorId]
-      );
-    } else {
-      await db.query(
-        'UPDATE entrenadores SET nombre = $1, correo = $2, foto_url = $3, telefono = $4, notas = $5 WHERE entrenador_id = $6',
-        [nombre, correo, foto_url, telefono, notas, entrenadorId]
-      );
-    }
+    const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
+    
+    await db.query(
+      `UPDATE entrenadores 
+       SET nombre = $1, correo = $2, password = COALESCE($3, password), 
+           foto_url = $4, telefono = $5, notas = $6 
+       WHERE entrenador_id = $7`,
+      [nombre, correo, hashedPassword, foto_url || null, telefono || null, notas || null, entrenadorId]
+    );
 
     res.status(200).json({ message: 'Entrenador actualizado correctamente.' });
   } catch (error) {
     console.error('Error actualizando entrenador:', error);
-    res.status(500).json({ error: 'Error del servidor.' });
+    res.status(500).json({ error: 'Error del servidor.', details: error.message });
   }
 });
+
 
 
 module.exports = router;
