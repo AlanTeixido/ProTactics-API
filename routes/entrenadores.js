@@ -38,14 +38,22 @@ router.get('/:id', async (req, res) => {
 
 // Editar entrenador por ID
 router.put('/:id', authMiddleware, async (req, res) => {
-  const { nombre, correo, equipo } = req.body;
+  const { nombre, correo, password, foto_url, telefono, notas } = req.body;
   const entrenadorId = req.params.id;
 
   try {
-    await db.query(
-      'UPDATE entrenadores SET nombre = $1, correo = $2, equipo = $3 WHERE entrenador_id = $4',
-      [nombre, correo, equipo, entrenadorId]
-    );
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      await db.query(
+        'UPDATE entrenadores SET nombre = $1, correo = $2, password = $3, foto_url = $4, telefono = $5, notas = $6 WHERE entrenador_id = $7',
+        [nombre, correo, hashedPassword, foto_url, telefono, notas, entrenadorId]
+      );
+    } else {
+      await db.query(
+        'UPDATE entrenadores SET nombre = $1, correo = $2, foto_url = $3, telefono = $4, notas = $5 WHERE entrenador_id = $6',
+        [nombre, correo, foto_url, telefono, notas, entrenadorId]
+      );
+    }
 
     res.status(200).json({ message: 'Entrenador actualizado correctamente.' });
   } catch (error) {
