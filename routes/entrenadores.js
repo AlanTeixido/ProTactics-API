@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { registrarEntrenador } = require('../controllers/entrenadorController');
+const bcrypt = require('bcryptjs'); 
 const authMiddleware = require('../middleware/authMiddleware');
 const db = require('../requests/db'); 
 
