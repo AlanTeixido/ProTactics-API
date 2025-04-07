@@ -11,10 +11,28 @@ router.post('/register', authMiddleware, registrarEntrenador);
 router.get('/', async (req, res) => {
     try {
       const result = await db.query('SELECT * FROM entrenadores');
-      res.status(200).json(result.rows); // Retorna todos los entrenadores
+      res.status(200).json(result.rows);
     } catch (error) {
       console.error('❌ Error obteniendo entrenadores:', error);
       res.status(500).json({ error: 'Error al obtener los entrenadores.' });
+    }
+});
+
+// Ruta para obtener entrenador por ID
+router.get('/:id', async (req, res) => {
+    const entrenadorId = req.params.id;
+    try {
+      const result = await db.query('SELECT * FROM entrenadores WHERE entrenador_id = $1', [entrenadorId]);
+      const entrenador = result.rows[0];
+
+      if (!entrenador) {
+        return res.status(404).json({ error: 'Entrenador no encontrado.' });
+      }
+
+      res.status(200).json(entrenador);
+    } catch (error) {
+      console.error('❌ Error obteniendo entrenador por ID:', error);
+      res.status(500).json({ error: 'Error al obtener entrenador por ID.' });
     }
 });
 
