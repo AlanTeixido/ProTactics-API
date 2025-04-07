@@ -36,4 +36,23 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+// Editar entrenador por ID
+router.put('/:id', authMiddleware, async (req, res) => {
+  const { nombre, correo, equipo } = req.body;
+  const entrenadorId = req.params.id;
+
+  try {
+    await db.query(
+      'UPDATE entrenadores SET nombre = $1, correo = $2, equipo = $3 WHERE entrenador_id = $4',
+      [nombre, correo, equipo, entrenadorId]
+    );
+
+    res.status(200).json({ message: 'Entrenador actualizado correctamente.' });
+  } catch (error) {
+    console.error('Error actualizando entrenador:', error);
+    res.status(500).json({ error: 'Error del servidor.' });
+  }
+});
+
+
 module.exports = router;
