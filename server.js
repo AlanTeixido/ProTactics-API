@@ -9,17 +9,28 @@ const entrenadoresRoutes = require("./routes/entrenadores");
 const jugadoresRoutes = require("./routes/jugadores");
 const publicacionesRoutes = require("./routes/publicaciones"); 
 const usuariosRoutes = require("./routes/usuarios"); 
-const equiposRoutes = require('./routes/equipos');
+const equiposRoutes = require("./routes/equipos");
 const entrenamientosRoutes = require("./routes/entrenamientos");
-
 
 const app = express();
 
-// 🔹 Configuración CORS para permitir solicitudes solo desde localhost:5173
+// 🔹 Configuración CORS para permitir múltiples orígenes (dev y prod)
 const corsOptions = {
-  origin: 'http://localhost:5173',
-  methods: 'GET, POST, PUT, DELETE',
-  allowedHeaders: 'Content-Type, Authorization',
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'https://alanverse.netlify.app', // añade aquí tu dominio real en producción si lo tienes
+    ];
+
+    // Permitir sin origin (por ejemplo, Postman)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('❌ No permitido por CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
 app.use(cors(corsOptions));
@@ -32,9 +43,8 @@ app.use("/entrenadores", entrenadoresRoutes);
 app.use("/jugadores", jugadoresRoutes);
 app.use("/publicaciones", publicacionesRoutes); 
 app.use("/usuarios", usuariosRoutes); 
-app.use('/equipos', equiposRoutes);
+app.use("/equipos", equiposRoutes);
 app.use("/entrenamientos", entrenamientosRoutes);
-
 
 // 🔹 Ruta raíz para verificar que la API funciona
 app.get("/", (req, res) => {
