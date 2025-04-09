@@ -1,11 +1,12 @@
 const {
     obtenerPublicaciones,
-    obtenerPublicacionPorId,
+    obtenerPublicacionPorId: obtenerPublicacionPorIdModel, 
     crearPublicacion,
     eliminarPublicacion,
     darLike,
     quitarLike
 } = require('../models/Publicacion');
+
 
 const obtenerTodasPublicaciones = async (req, res) => {
     try {
@@ -21,7 +22,7 @@ const obtenerPublicacionPorId = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const publicacion = await obtenerPublicacionPorId(id);
+        const publicacion = await obtenerPublicacionPorIdModel(id);
         if (!publicacion) {
             return res.status(404).json({ error: "Publicación no encontrada." });
         }
@@ -31,6 +32,7 @@ const obtenerPublicacionPorId = async (req, res) => {
         res.status(500).json({ error: "Error del servidor." });
     }
 };
+
 
 const crearNuevaPublicacion = async (req, res) => {
     const { titulo, contenido, imagen_url, entrenamiento_id } = req.body;
