@@ -1,6 +1,7 @@
 const {
-    crearPublicacion,
     obtenerPublicaciones,
+    obtenerPublicacionPorId,
+    crearPublicacion,
     eliminarPublicacion,
     darLike,
     quitarLike
@@ -12,6 +13,21 @@ const obtenerTodasPublicaciones = async (req, res) => {
         res.json(publicaciones);
     } catch (error) {
         console.error("Error obteniendo publicaciones:", error);
+        res.status(500).json({ error: "Error del servidor." });
+    }
+};
+
+const obtenerPublicacionPorId = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const publicacion = await obtenerPublicacionPorId(id);
+        if (!publicacion) {
+            return res.status(404).json({ error: "Publicación no encontrada." });
+        }
+        res.json(publicacion);
+    } catch (error) {
+        console.error("Error obteniendo publicación por ID:", error);
         res.status(500).json({ error: "Error del servidor." });
     }
 };
@@ -87,6 +103,7 @@ const unlikePublicacion = async (req, res) => {
 
 module.exports = {
     obtenerTodasPublicaciones,
+    obtenerPublicacionPorId,
     crearNuevaPublicacion,
     eliminarPublicacionPorId,
     likePublicacion,

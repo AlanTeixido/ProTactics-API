@@ -11,6 +11,17 @@ const obtenerPublicaciones = async () => {
     return result.rows;
 };
 
+const obtenerPublicacionPorId = async (id) => {
+    const result = await db.query(
+        `SELECT p.*, e.nombre AS entrenador
+         FROM publicaciones p
+         JOIN entrenadores e ON p.entrenador_id = e.entrenador_id
+         WHERE p.publicacion_id = $1`,
+        [id]
+    );
+    return result.rows[0]; // Devuelve una sola publicación
+};
+
 const crearPublicacion = async (entrenador_id, titulo, contenido, imagen_url, entrenamiento_id) => {
     const result = await db.query(
         `INSERT INTO publicaciones (entrenador_id, titulo, contenido, imagen_url, entrenamiento_id, creado_en)
@@ -41,6 +52,7 @@ const quitarLike = async (publicacion_id, entrenador_id) => {
 
 module.exports = {
     obtenerPublicaciones,
+    obtenerPublicacionPorId,
     crearPublicacion,
     eliminarPublicacion,
     darLike,
