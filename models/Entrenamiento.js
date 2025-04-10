@@ -7,7 +7,6 @@ const crearEntrenamiento = async (
   descanso, valoracion, imagen_url, notas
 ) => {
   if (typeof duracion_repeticion === 'object' && duracion_repeticion.minutes) {
-    // Asegura que duracion_repeticion sea un string en formato intervalo
     duracion_repeticion = `${duracion_repeticion.minutes} minutes`;
   }
 
@@ -69,9 +68,16 @@ const obtenerEntrenamientosPorEntrenador = async (entrenador_id) => {
   return result.rows;
 };
 
+// ✅ NUEVO: Relacionar jugadores
+const relacionarJugadores = async (entrenamiento_id, jugadores) => {
+  const valores = jugadores.map(jugador_id => `(${entrenamiento_id}, ${jugador_id})`).join(',');
+  await db.query(`INSERT INTO entrenamiento_jugadores (entrenamiento_id, jugador_id) VALUES ${valores}`);
+};
+
 module.exports = {
   crearEntrenamiento,
   editarEntrenamiento,
   eliminarEntrenamiento,
-  obtenerEntrenamientosPorEntrenador
+  obtenerEntrenamientosPorEntrenador,
+  relacionarJugadores
 };

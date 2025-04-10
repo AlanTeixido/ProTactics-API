@@ -2,7 +2,8 @@ const {
   crearEntrenamiento,
   editarEntrenamiento,
   eliminarEntrenamiento,
-  obtenerEntrenamientosPorEntrenador
+  obtenerEntrenamientosPorEntrenador,
+  relacionarJugadores // 🔥 Aquí ara sí que l’importem
 } = require('../models/Entrenamiento');
 
 const crearEntrenamientoController = async (req, res) => {
@@ -19,7 +20,6 @@ const crearEntrenamientoController = async (req, res) => {
     descanso, valoracion, imagen_url, notas
   );
 
-  // Relacionar jugadores con el entrenamiento si los hay
   if (jugadores && jugadores.length > 0) {
     await relacionarJugadores(nuevoEntrenamiento.entrenamiento_id, jugadores);
   }
@@ -57,7 +57,7 @@ const eliminarEntrenamientoController = async (req, res) => {
 };
 
 const obtenerEntrenamientosController = async (req, res) => {
-  const entrenador_id = req.user.id; // El ID del entrenador lo obtenemos del token
+  const entrenador_id = req.user.id;
 
   try {
     const entrenamientos = await obtenerEntrenamientosPorEntrenador(entrenador_id);
