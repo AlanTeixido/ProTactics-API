@@ -2,11 +2,11 @@ const {
     obtenerPublicaciones,
     obtenerPublicacionPorId: obtenerPublicacionPorIdModel, 
     crearPublicacion,
+    crearPublicacionDesdeEntrenamiento,
     eliminarPublicacion,
     darLike,
     quitarLike
 } = require('../models/Publicacion');
-
 
 const obtenerTodasPublicaciones = async (req, res) => {
     try {
@@ -33,7 +33,6 @@ const obtenerPublicacionPorId = async (req, res) => {
     }
 };
 
-
 const crearNuevaPublicacion = async (req, res) => {
     const { titulo, contenido, imagen_url, entrenamiento_id } = req.body;
     const entrenador_id = req.user.id;
@@ -51,6 +50,51 @@ const crearNuevaPublicacion = async (req, res) => {
         res.status(201).json(nuevaPublicacion);
     } catch (error) {
         console.error("Error creando la publicación:", error);
+        res.status(500).json({ error: "Error del servidor." });
+    }
+};
+
+const subirPublicacionDesdeEntrenamiento = async (req, res) => {
+    const entrenador_id = req.user.id;
+    const {
+        entrenamiento_id,
+        titulo,
+        contenido,
+        imagen_url,
+        categoria,
+        campo,
+        fecha_entrenamiento,
+        duracion_repeticion,
+        repeticiones,
+        total_duracion,
+        descanso,
+        notas_adicionales
+    } = req.body;
+
+    if (!req.user.club_id) {
+        return res.status(403).json({ error: "Solo los entrenadores de club pueden publicar." });
+    }
+
+    try {
+        const publicacion = await crearPublicacionDesdeEntrenamiento({
+            entrenador_id,
+            entrenamiento_id,
+            titulo,
+            contenido,
+            imagen_url,
+            categoria,
+            campo,
+            fecha_entrenamiento,
+            duracion_repeticion,
+            repeticiones,
+            total_duracion,
+            descanso,
+            notas_adicionales
+        });
+
+        res.status(201).json(publicacion);
+    } catch (error) {
+        console.error("Error al subir la publicación desde entrenamiento:", error);
         res.status(500).json({ error: "Error del servidor." });
     }
 };
@@ -107,6 +151,7 @@ module.exports = {
     obtenerTodasPublicaciones,
     obtenerPublicacionPorId,
     crearNuevaPublicacion,
+    subirPublicacionDesdeEntrenamiento,
     eliminarPublicacionPorId,
     likePublicacion,
     unlikePublicacion
