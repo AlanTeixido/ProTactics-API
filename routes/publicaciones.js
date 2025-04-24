@@ -21,4 +21,3 @@ router.post('/:id/like', authMiddleware, likePublicacion);
 router.delete('/:id/like', authMiddleware, unlikePublicacion);
 
 module.exports = router;
-

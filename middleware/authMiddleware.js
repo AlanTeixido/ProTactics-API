@@ -11,9 +11,10 @@ module.exports = (req, res, next) => {
         const decoded = jwt.verify(token.split(" ")[1], process.env.JWT_SECRET);
         req.user = {
             id: decoded.id,
-            tipo: decoded.tipo,        // "club" o "entrenador"
-            correo: decoded.correo
-        };
+            tipo: decoded.tipo,
+            correo: decoded.correo,
+            //club_id: decoded.club_id 
+        };        
         next();
     } catch (error) {
         console.error("❌ Error verificant token:", error);
