@@ -1,22 +1,22 @@
 const db = require('../requests/db');
 
 const obtenerPublicaciones = async () => {
-    const result = await db.query(`
-        SELECT p.*, e.nombre AS entrenador
+    const result = await db.query(
+        `SELECT p.*, e.nombre AS entrenador
         FROM publicaciones p
         JOIN entrenadores e ON p.entrenador_id = e.entrenador_id
         WHERE e.club_id IS NOT NULL
-        ORDER BY p.creado_en DESC
-    `);
+        ORDER BY p.creado_en DESC`
+    );
     return result.rows;
 };
 
 const obtenerPublicacionPorId = async (id) => {
     const result = await db.query(
         `SELECT p.*, e.nombre AS entrenador
-         FROM publicaciones p
-         JOIN entrenadores e ON p.entrenador_id = e.entrenador_id
-         WHERE p.publicacion_id = $1`,
+        FROM publicaciones p
+        JOIN entrenadores e ON p.entrenador_id = e.entrenador_id
+        WHERE p.publicacion_id = $1`,
         [id]
     );
     return result.rows[0];
@@ -25,7 +25,7 @@ const obtenerPublicacionPorId = async (id) => {
 const crearPublicacion = async (entrenador_id, titulo, contenido, imagen_url, entrenamiento_id) => {
     const result = await db.query(
         `INSERT INTO publicaciones (entrenador_id, titulo, contenido, imagen_url, entrenamiento_id, creado_en)
-         VALUES ($1, $2, $3, $4, $5, NOW())
+         VALUES ($1, $2, $3, $4, $5, NOW()) 
          RETURNING *`,
         [entrenador_id, titulo, contenido, imagen_url || 'default.png', entrenamiento_id]
     );

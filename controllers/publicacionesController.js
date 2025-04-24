@@ -37,12 +37,12 @@ const crearNuevaPublicacion = async (req, res) => {
     const { titulo, contenido, imagen_url, entrenamiento_id } = req.body;
     const entrenador_id = req.user.id;
 
-    if (req.user.tipo !== 'entrenador') {
-        return res.status(403).json({ error: "Solo los entrenadores pueden publicar." });
+    if (!req.user.club_id) {
+        return res.status(403).json({ error: "Solo los entrenadores de club pueden publicar." });
     }
 
-    if (!titulo || !contenido || !entrenamiento_id) {
-        return res.status(400).json({ error: "Título, contenido y entrenamiento_id son obligatorios." });
+    if (!titulo || !contenido) {
+        return res.status(400).json({ error: "Título y contenido son obligatorios." });
     }
 
     try {
@@ -53,7 +53,6 @@ const crearNuevaPublicacion = async (req, res) => {
         res.status(500).json({ error: "Error del servidor." });
     }
 };
-
 
 const subirPublicacionDesdeEntrenamiento = async (req, res) => {
     const entrenador_id = req.user.id;
@@ -72,9 +71,8 @@ const subirPublicacionDesdeEntrenamiento = async (req, res) => {
         notas_adicionales
     } = req.body;
 
-    // Verificación basada en el tipo (entrenador o club)
-    if (req.user.tipo !== 'entrenador') {
-        return res.status(403).json({ error: "Solo los entrenadores pueden subir publicaciones desde un entrenamiento." });
+    if (!req.user.club_id) {
+        return res.status(403).json({ error: "Solo los entrenadores de club pueden publicar." });
     }
 
     try {
@@ -105,9 +103,8 @@ const eliminarPublicacionPorId = async (req, res) => {
     const { id } = req.params;
     const entrenador_id = req.user.id;
 
-    // Verificación basada en el tipo (entrenador o club)
-    if (req.user.tipo !== 'entrenador') {
-        return res.status(403).json({ error: "Solo los entrenadores pueden eliminar publicaciones." });
+    if (!req.user.club_id) {
+        return res.status(403).json({ error: "Solo los entrenadores de club pueden eliminar publicaciones." });
     }
 
     try {
@@ -122,9 +119,8 @@ const likePublicacion = async (req, res) => {
     const { id } = req.params;
     const entrenador_id = req.user.id;
 
-    // Verificación basada en el tipo (entrenador o club)
-    if (req.user.tipo !== 'entrenador') {
-        return res.status(403).json({ error: "Solo los entrenadores pueden dar like." });
+    if (!req.user.club_id) {
+        return res.status(403).json({ error: "Solo los entrenadores de club pueden dar like." });
     }
 
     try {
@@ -139,9 +135,8 @@ const unlikePublicacion = async (req, res) => {
     const { id } = req.params;
     const entrenador_id = req.user.id;
 
-    // Verificación basada en el tipo (entrenador o club)
-    if (req.user.tipo !== 'entrenador') {
-        return res.status(403).json({ error: "Solo los entrenadores pueden quitar like." });
+    if (!req.user.club_id) {
+        return res.status(403).json({ error: "Solo los entrenadores de club pueden quitar like." });
     }
 
     try {
