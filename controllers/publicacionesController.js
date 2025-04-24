@@ -37,13 +37,12 @@ const crearNuevaPublicacion = async (req, res) => {
     const { titulo, contenido, imagen_url, entrenamiento_id } = req.body;
     const entrenador_id = req.user.id;
 
-    // Verificación del tipo de usuario (entrenador)
     if (req.user.tipo !== 'entrenador') {
         return res.status(403).json({ error: "Solo los entrenadores pueden publicar." });
     }
 
-    if (!titulo || !contenido) {
-        return res.status(400).json({ error: "Título y contenido son obligatorios." });
+    if (!titulo || !contenido || !entrenamiento_id) {
+        return res.status(400).json({ error: "Título, contenido y entrenamiento_id son obligatorios." });
     }
 
     try {
@@ -54,6 +53,7 @@ const crearNuevaPublicacion = async (req, res) => {
         res.status(500).json({ error: "Error del servidor." });
     }
 };
+
 
 const subirPublicacionDesdeEntrenamiento = async (req, res) => {
     const entrenador_id = req.user.id;
