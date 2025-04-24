@@ -37,7 +37,7 @@ const crearNuevaPublicacion = async (req, res) => {
     const { titulo, contenido, imagen_url, entrenamiento_id } = req.body;
     const entrenador_id = req.user.id;
 
-    // Verificación basada en el tipo (entrenador o club)
+    // Verificación del tipo de usuario (entrenador)
     if (req.user.tipo !== 'entrenador') {
         return res.status(403).json({ error: "Solo los entrenadores pueden publicar." });
     }

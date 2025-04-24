@@ -21,9 +21,11 @@ const login = async (req, res) => {
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) return res.status(400).json({ error: 'Contraseña incorrecta.' });
 
-    const token = jwt.sign({ id: user.id, correo: user.correo, rol }, process.env.JWT_SECRET, {
-      expiresIn: '1d',
-    });
+  const token = jwt.sign(
+    { id: user.id, correo: user.correo, tipo: rol }, // Asegúrate de enviar 'tipo' aquí
+    process.env.JWT_SECRET, 
+    { expiresIn: '1d' }
+  );
 
     res.status(200).json({
       token,
