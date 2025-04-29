@@ -1,55 +1,73 @@
-const express = require("express");
-const router = express.Router();
-
 const preguntasApp = [
-  {
-    pregunta: "¿Cómo crear un entrenamiento?",
-    clave: ["crear entrenamiento", "nuevo entrenamiento"],
-    respuesta: "Para crear un entrenamiento, ve al menú 'Entrenamientos' y haz clic en 'Nuevo'. Completa los campos y guarda.",
-  },
-  {
-    pregunta: "¿Cómo crear un club?",
-    clave: ["crear club", "nuevo club"],
-    respuesta: "Desde el menú 'Clubes', haz clic en 'Crear Club'. Asigna nombre, descripción, y guarda los cambios.",
-  },
-  {
-    pregunta: "¿Cómo ver las publicaciones?",
-    clave: ["ver publicaciones", "noticias", "posts"],
-    respuesta: "Haz clic en el menú 'Publicaciones' y verás las más recientes de tus amigos y clubes.",
-  },
-  {
-    pregunta: "¿Cómo ver mi perfil?",
-    clave: ["ver perfil", "mi perfil", "perfil usuario"],
-    respuesta: "Pulsa en tu foto de perfil o el icono superior derecho, y elige 'Ver Perfil'.",
-  },
-  {
-    pregunta: "¿Cómo editar mi cuenta?",
-    clave: ["editar cuenta", "cambiar datos", "ajustes"],
-    respuesta: "Desde el menú de usuario, selecciona 'Configuración' o 'Cuenta', donde puedes modificar tus datos.",
-  },
-];
-
-// Ruta para obtener las preguntas sugeridas
-router.get("/preguntas", (req, res) => {
-  const preguntas = preguntasApp.map((p) => p.pregunta);
-  res.json({ preguntas });
-});
-
-// Ruta para responder a las preguntas del usuario
-router.post("/chat", (req, res) => {
-  const { message } = req.body;
-  const mensaje = message.toLowerCase();
-
-  let respuesta = "Lo siento, no entendí tu pregunta. Intenta con otra frase.";
-
-  for (let item of preguntasApp) {
-    if (item.clave.some((palabra) => mensaje.includes(palabra))) {
-      respuesta = item.respuesta;
-      break;
+    // 🔹 CLUB
+    {
+      pregunta: "¿Cómo crear un club?",
+      clave: ["crear club", "nuevo club"],
+      respuesta: "Puedes crear un club desde el apartado superior derecho en la web de la app, una vez hayas iniciado sesión."
+    },
+    {
+      pregunta: "¿Cómo crear un entrenador?",
+      clave: ["crear entrenador", "nuevo entrenador"],
+      respuesta: "Debes registrar primero un club. Una vez iniciada sesión como club, en el dashboard encontrarás el apartado 'Entrenadores', donde podrás crear uno nuevo."
+    },
+    {
+      pregunta: "¿Cómo crear un equipo?",
+      clave: ["crear equipo", "nuevo equipo"],
+      respuesta: "Desde el dashboard, accediendo como club, encontrarás un apartado llamado 'Equipos'. Ahí podrás crear un nuevo equipo."
+    },
+    {
+      pregunta: "¿Cómo ver publicaciones como club?",
+      clave: ["ver publicaciones club", "publicaciones club"],
+      respuesta: "Desde el dashboard accediendo como club, encontrarás un apartado llamado 'Publicaciones', donde verás todas las compartidas por los entrenadores del club."
+    },
+    {
+      pregunta: "¿Cómo editar el perfil como club?",
+      clave: ["editar perfil club", "cambiar perfil club"],
+      respuesta: "En el menú lateral izquierdo, ve al apartado 'Perfil'. Dentro encontrarás la opción para editarlo."
+    },
+    {
+      pregunta: "¿Cómo ver el perfil como club?",
+      clave: ["ver perfil club", "perfil club"],
+      respuesta: "Desde el menú lateral izquierdo, accediendo como club, haz clic en 'Perfil' para ver tu información."
+    },
+  
+    // 🔹 ENTRENADOR
+    {
+      pregunta: "¿Cómo crear un entrenamiento?",
+      clave: ["crear entrenamiento", "nuevo entrenamiento"],
+      respuesta: "Desde el dashboard, accediendo como entrenador, entra en el apartado 'Entrenamientos'. Ahí podrás crear uno completo, incluyendo el uso de la pizarra táctica."
+    },
+    {
+      pregunta: "¿Cómo editar mi perfil como entrenador?",
+      clave: ["editar perfil entrenador", "modificar perfil"],
+      respuesta: "Desde el dashboard como entrenador, entra en 'Configuración' o ve al apartado 'Perfil' desde el menú lateral para editar tu información."
+    },
+    {
+      pregunta: "¿Cómo usar la pizarra?",
+      clave: ["usar pizarra", "pizarra táctica"],
+      respuesta: "Desde el dashboard como entrenador, accede al apartado 'Pizarra'. Puedes usarla libremente y guardar tus progresos como imagen (PNG)."
+    },
+    {
+      pregunta: "¿Cómo ver publicaciones como entrenador?",
+      clave: ["ver publicaciones entrenador", "publicaciones"],
+      respuesta: "Desde el dashboard como entrenador, entra en el apartado 'Publicaciones' para ver todas las compartidas por otros entrenadores de tu mismo club."
+    },
+    {
+      pregunta: "¿Cómo crear jugadores?",
+      clave: ["crear jugadores", "nuevo jugador"],
+      respuesta: "Desde el dashboard como entrenador, entra en el apartado 'Jugadores'. Ahí puedes crear jugadores y asignarles diferentes propiedades."
+    },
+    {
+      pregunta: "¿Cómo subir una publicación?",
+      clave: ["subir publicación", "publicar entrenamiento"],
+      respuesta: "Desde el dashboard como entrenador, entra en 'Subir publicación'. Verás los entrenamientos creados y podrás decidir cuáles compartir."
+    },
+    {
+      pregunta: "¿Cómo ver mi perfil como entrenador?",
+      clave: ["ver perfil entrenador", "perfil entrenador"],
+      respuesta: "Desde el menú lateral izquierdo, entra en 'Perfil' para ver tu información como entrenador."
     }
-  }
-
-  res.json({ reply: respuesta });
-});
-
-module.exports = router;
+  ];
+  
+  module.exports = preguntasApp;
+  
