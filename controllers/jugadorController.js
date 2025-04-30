@@ -1,3 +1,5 @@
+const fs = require('fs');
+const csv = require('csv-parser');
 const {
   crearJugador,
   buscarJugadorPorDorsal,
@@ -100,6 +102,48 @@ const obtenerJugadoresPorEquipoController = async (req, res) => {
   }
 };
 
+const subirJugadoresDesdeCSV = async (req, res) => {
+  const entrenador_id = req.user.id;
+  const filePath = req.file?.path;
+
+  if (!filePath) return res.status(400).json({ error: 'No s\'ha enviat cap arxiu.' });
+
+  const jugadores = [];
+
+  fs.createReadStream(filePath)
+    .pipe(csv())
+    .on('data', (data) => jugadores.push(data))
+    .on('end', async () => {
+      let creados = 0;
+      let duplicados = 0;
+
+      for (const jugador of jugadores) {
+        const { nombre, apellido, dorsal, posicion, equipo_id } = jugador;
+
+        if (!nombre || !apellido || !dorsal || !posicion || !equipo_id) continue;
+
+        const existente = await buscarJugadorPorDorsal(dorsal, entrenador_id);
+        if (existente) {
+          duplicados++;
+          continue;
+        }
+
+        await crearJugador(nombre, apellido, dorsal, posicion, entrenador_id, equipo_id);
+        creados++;
+      }
+
+      fs.unlinkSync(filePath); // elimina archivo temporal
+      res.status(200).json({
+        mensaje: 'CSV processat correctament',
+        jugadors_creats: creados,
+        duplicats: duplicados
+      });
+    })
+    .on('error', (err) => {
+      console.error('❌ Error llegint CSV:', err);
+      res.status(500).json({ error: 'Error processant l\'arxiu CSV.' });
+    });
+};
 
 module.exports = {
   registrarJugador,
@@ -107,5 +151,6 @@ module.exports = {
   eliminarJugador,
   obtenerJugadorPorId,
   actualizarJugador,
-  obtenerJugadoresPorEquipoController
+  obtenerJugadoresPorEquipoController,
+  subirJugadoresDesdeCSV // NUEVO
 };
