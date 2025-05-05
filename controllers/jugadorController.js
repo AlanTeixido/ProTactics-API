@@ -102,6 +102,7 @@ const obtenerJugadoresPorEquipoController = async (req, res) => {
   }
 };
 
+// Controlador para subir los jugadores desde un archivo CSV
 const subirJugadoresDesdeCSV = async (req, res) => {
   const entrenador_id = req.user.id;
   const filePath = req.file?.path;
@@ -132,7 +133,7 @@ const subirJugadoresDesdeCSV = async (req, res) => {
         creados++;
       }
 
-      fs.unlinkSync(filePath); // elimina archivo temporal
+      fs.unlinkSync(filePath); // Eliminar el archivo temporal
       res.status(200).json({
         mensaje: 'CSV processat correctament',
         jugadors_creats: creados,
@@ -152,5 +153,5 @@ module.exports = {
   obtenerJugadorPorId,
   actualizarJugador,
   obtenerJugadoresPorEquipoController,
-  subirJugadoresDesdeCSV // NUEVO
+  subirJugadoresDesdeCSV
 };
