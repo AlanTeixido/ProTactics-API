@@ -5,39 +5,49 @@ const bcrypt = require('bcryptjs');
 const authMiddleware = require('../middleware/authMiddleware');
 const db = require('../requests/db'); 
 
-// Ruta protegida para crear entrenadores
+// Crear entrenador (protegido, usa club_id desde token)
 router.post('/register', authMiddleware, registrarEntrenador);
 
-// Ruta para obtener todos los entrenadores
-router.get('/', async (req, res) => {
-    try {
-      const result = await db.query('SELECT * FROM entrenadores');
-      res.status(200).json(result.rows);
-    } catch (error) {
-      console.error('❌ Error obteniendo entrenadores:', error);
-      res.status(500).json({ error: 'Error al obtener los entrenadores.' });
-    }
+// ✅ Obtener entrenadores solo del club autenticado
+router.get('/', authMiddleware, async (req, res) => {
+  const club_id = req.user.id;
+
+  // (opcional) validación de rol
+  if (req.user.tipo !== 'club') {
+    return res.status(403).json({ error: 'Accés restringit només a clubs.' });
+  }
+
+  try {
+    const result = await db.query(
+      'SELECT * FROM entrenadores WHERE club_id = $1',
+      [club_id]
+    );
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error('❌ Error obtenint entrenadors:', error);
+    res.status(500).json({ error: 'Error del servidor.' });
+  }
 });
 
-// Ruta para obtener entrenador por ID
+// Obtener entrenador por ID (público o privado, según prefieras)
 router.get('/:id', async (req, res) => {
-    const entrenadorId = req.params.id;
-    try {
-      const result = await db.query('SELECT * FROM entrenadores WHERE entrenador_id = $1', [entrenadorId]);
-      const entrenador = result.rows[0];
+  const entrenadorId = req.params.id;
+  try {
+    const result = await db.query('SELECT * FROM entrenadores WHERE entrenador_id = $1', [entrenadorId]);
+    const entrenador = result.rows[0];
 
-      if (!entrenador) {
-        return res.status(404).json({ error: 'Entrenador no encontrado.' });
-      }
-
-      res.status(200).json(entrenador);
-    } catch (error) {
-      console.error('❌ Error obteniendo entrenador por ID:', error);
-      res.status(500).json({ error: 'Error al obtener entrenador por ID.' });
+    if (!entrenador) {
+      return res.status(404).json({ error: 'Entrenador no trobat.' });
     }
+
+    res.status(200).json(entrenador);
+  } catch (error) {
+    console.error('❌ Error obtenint entrenador per ID:', error);
+    res.status(500).json({ error: 'Error del servidor.' });
+  }
 });
 
-// Editar entrenador por ID
+// Editar entrenador (protegido)
 router.put('/:id', authMiddleware, async (req, res) => {
   const { nombre, correo, password, foto_url, telefono, notas } = req.body;
   const entrenadorId = req.params.id;
@@ -53,13 +63,11 @@ router.put('/:id', authMiddleware, async (req, res) => {
       [nombre, correo, hashedPassword, foto_url || null, telefono || null, notas || null, entrenadorId]
     );
 
-    res.status(200).json({ message: 'Entrenador actualizado correctamente.' });
+    res.status(200).json({ message: 'Entrenador actualitzat correctament.' });
   } catch (error) {
-    console.error('Error actualizando entrenador:', error);
+    console.error('Error actualitzant entrenador:', error);
     res.status(500).json({ error: 'Error del servidor.', details: error.message });
   }
 });
-
-
 
 module.exports = router;
