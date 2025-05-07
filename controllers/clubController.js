@@ -1,12 +1,11 @@
 const {
   crearClub,
   buscarPorCorreo,
-  obtenerTodosLosClubs,
-  obtenerClubPorIdDB,
-  actualizarClub
+  buscarClubPorId,
+  actualizarPerfilClub,
+  actualizarPasswordClub,
 } = require('../models/Club');
 
-// Crear nuevo club
 const registrarClub = async (req, res) => {
   const { nombre, correo, password } = req.body;
 
@@ -28,50 +27,58 @@ const registrarClub = async (req, res) => {
   }
 };
 
-// Obtener todos los clubs
-const obtenerClubs = async (_req, res) => {
-  try {
-    const clubs = await obtenerTodosLosClubs();
-    res.status(200).json(clubs);
-  } catch (error) {
-    console.error("❌ Error obtenint clubs:", error);
-    res.status(500).json({ error: 'Error al recuperar els clubs' });
-  }
-};
-
-// Obtener un club por ID
 const obtenerClubPorId = async (req, res) => {
-  const club_id = req.params.id;
-
+  const id = req.params.id;
   try {
-    const club = await obtenerClubPorIdDB(club_id);
-    if (!club) {
-      return res.status(404).json({ error: 'Club no trobat.' });
-    }
+    const club = await buscarClubPorId(id);
+    if (!club) return res.status(404).json({ error: 'Club no trobat.' });
     res.status(200).json(club);
   } catch (error) {
-    console.error("❌ Error obtenint club:", error);
+    console.error('❌ Error obtenint club:', error);
     res.status(500).json({ error: 'Error del servidor.' });
   }
 };
 
-// Editar un club
-const editarClub = async (req, res) => {
-  const club_id = req.params.id;
-  const { nombre, correo, ubicacion } = req.body;
+const editarPerfilClub = async (req, res) => {
+  const id = req.params.id;
+  const { nombre, correo, ubicacion, foto_url } = req.body;
+
+  if (!nombre || !correo) {
+    return res.status(400).json({ error: 'Nom i correu són obligatoris.' });
+  }
 
   try {
-    await actualizarClub(club_id, nombre, correo, ubicacion);
-    res.status(200).json({ message: 'Club actualitzat correctament.' });
+    await actualizarPerfilClub(id, { nombre, correo, ubicacion, foto_url });
+    res.status(200).json({ message: 'Perfil actualitzat correctament' });
   } catch (error) {
-    console.error("❌ Error actualitzant club:", error);
+    console.error('❌ Error actualitzant perfil:', error);
+    res.status(500).json({ error: 'Error del servidor.' });
+  }
+};
+
+const editarPasswordClub = async (req, res) => {
+  const id = req.params.id;
+  const { contrasena_actual, contrasena_nova } = req.body;
+
+  if (!contrasena_actual || !contrasena_nova) {
+    return res.status(400).json({ error: 'Falten camps obligatoris.' });
+  }
+
+  try {
+    const canviada = await actualizarPasswordClub(id, contrasena_actual, contrasena_nova);
+    if (!canviada) {
+      return res.status(401).json({ error: 'Contrasenya actual incorrecta.' });
+    }
+    res.status(200).json({ message: 'Contrasenya actualitzada correctament' });
+  } catch (error) {
+    console.error('❌ Error canviant contrasenya:', error);
     res.status(500).json({ error: 'Error del servidor.' });
   }
 };
 
 module.exports = {
   registrarClub,
-  obtenerClubs,
   obtenerClubPorId,
-  editarClub
+  editarPerfilClub,
+  editarPasswordClub
 };
