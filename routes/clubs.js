@@ -23,13 +23,13 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Obtener perfil de un club por ID
+// Obtener perfil de un club por ID (protegido)
 router.get('/:id', authMiddleware, obtenerClubPorId);
 
-// Editar perfil
+// Editar perfil del club
 router.put('/:id', authMiddleware, editarPerfilClub);
 
-// Editar contraseña
+// Cambiar contraseña del club
 router.put('/:id/password', authMiddleware, editarPasswordClub);
 
 module.exports = router;

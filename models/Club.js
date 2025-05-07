@@ -1,5 +1,5 @@
 const db = require('../requests/db');
-require('bcryptjs')
+const bcrypt = require('bcryptjs');  // 🔧 ESTO FALTABA
 
 const crearClub = async (nombre, correo, password) => {
   const hashed = await bcrypt.hash(password, 10);
