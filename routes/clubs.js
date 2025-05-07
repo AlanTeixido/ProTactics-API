@@ -1,21 +1,23 @@
 const express = require('express');
 const router = express.Router();
-const { registrarClub } = require('../controllers/clubController');
-const db = require('../requests/db'); // Afegim la importació de db
+const {
+  registrarClub,
+  obtenerClubs,
+  obtenerClubPorId,
+  editarClub
+} = require('../controllers/clubController');
+const authMiddleware = require('../middleware/authMiddleware');
 
-// Ruta per registrar un club
+// Crear club (registro público)
 router.post('/register', registrarClub);
 
-// Nova ruta GET per obtenir tots els clubs
-router.get('/', async (req, res) => {
-  try {
-    // Consulta per obtenir els clubs des de la base de dades
-    const result = await db.query('SELECT * FROM clubs');
-    res.status(200).json(result.rows);  // Retorna tots els clubs
-  } catch (error) {
-    console.error('Error al obtenir els clubs:', error);
-    res.status(500).json({ error: 'Error al recuperar els clubs' });
-  }
-});
+// Obtener todos los clubs
+router.get('/', authMiddleware, obtenerClubs);
+
+// Obtener un club por ID
+router.get('/:id', authMiddleware, obtenerClubPorId);
+
+// Editar un club
+router.put('/:id', authMiddleware, editarClub);
 
 module.exports = router;
