@@ -3,8 +3,7 @@ const jwt = require('jsonwebtoken');
 const { buscarPorCorreo: buscarEntrenador, crearEntrenador } = require('../models/Entrenador');
 const { buscarPorCorreo: buscarClub, crearClub } = require('../models/Club');
 
-// 🔐 LOGIN para Club o Entrenador
-const login = async (req, res) => {
+// 🔐 LOGIN para Club o Entrenadorconst login = async (req, res) => {
   const { correo, password } = req.body;
 
   try {
@@ -21,25 +20,30 @@ const login = async (req, res) => {
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) return res.status(400).json({ error: 'Contraseña incorrecta.' });
 
-  const token = jwt.sign(
-    { id: user.id, correo: user.correo, tipo: rol }, // Asegúrate de enviar 'tipo' aquí
-    process.env.JWT_SECRET, 
-    { expiresIn: '1d' }
-  );
+    const secretParaFirmar = "super_secret_key_1234"; // 👈 AÑADE ESTA LÍNEA
+
+    const token = jwt.sign(
+      { id: user.id, correo: user.correo, tipo: rol },
+      secretParaFirmar, // 👈 USA secretParaFirmar AQUÍ
+      { expiresIn: '1d' }
+    );
 
     res.status(200).json({
       token,
       id: user.id,
-      email: user.correo, 
+      email: user.correo,
       nombre: user.nombre,
       rol,
     });
-    
+
+    console.log("🔑 [LOGIN] Token generado:", token);
+    console.log("🔑 [LOGIN] JWT_SECRET usado (LITERAL):", secretParaFirmar); // 👈 AÑADE ESTA LÍNEA
+    console.log("🔑 [LOGIN] JWT_SECRET desde env:", process.env.JWT_SECRET);
+
   } catch (err) {
     console.error('❌ Error en login:', err);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
-};
 
 // REGISTRO CLUB (usado solo si quieres unificar aquí)
 const registerClub = async (req, res) => {

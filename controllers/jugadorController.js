@@ -1,3 +1,4 @@
+// jugadorController.js
 const fs = require('fs');
 const csv = require('csv-parser');
 const {
@@ -110,13 +111,17 @@ const subirJugadoresDesdeCSV = async (req, res) => {
   if (!filePath) return res.status(400).json({ error: 'No s\'ha enviat cap arxiu.' });
 
   const jugadores = [];
+  let creados = 0;
+  let duplicados = 0;
 
-  fs.createReadStream(filePath)
-    .pipe(csv())
-    .on('data', (data) => jugadores.push(data))
-    .on('end', async () => {
-      let creados = 0;
-      let duplicados = 0;
+  try {
+      await new Promise((resolve, reject) => {
+        fs.createReadStream(filePath)
+          .pipe(csv())
+          .on('data', (data) => jugadores.push(data))
+          .on('end', () => resolve())
+          .on('error', (err) => reject(err));
+      });
 
       for (const jugador of jugadores) {
         const { nombre, apellido, dorsal, posicion, equipo_id } = jugador;
@@ -139,11 +144,10 @@ const subirJugadoresDesdeCSV = async (req, res) => {
         jugadors_creats: creados,
         duplicats: duplicados
       });
-    })
-    .on('error', (err) => {
+    } catch (err) {
       console.error('❌ Error llegint CSV:', err);
       res.status(500).json({ error: 'Error processant l\'arxiu CSV.' });
-    });
+    }
 };
 
 module.exports = {
