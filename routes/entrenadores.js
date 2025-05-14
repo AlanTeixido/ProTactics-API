@@ -13,5 +13,5 @@ router.post('/register', authMiddleware, registrarEntrenador);
 router.get('/', authMiddleware, listarEntrenadores);
 router.delete('/:id', authMiddleware, eliminarEntrenador);
 router.put('/:id', authMiddleware, editarEntrenador);
-
+router.get('/:id', authMiddleware, obtenerEntrenadorPorId);
 module.exports = router;
