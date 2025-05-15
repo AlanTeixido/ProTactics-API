@@ -38,20 +38,20 @@ const eliminarEntrenadorPorId = async (entrenador_id, club_id) => {
 };
 
 // Actualizar datos del entrenador
-const actualizarEntrenador = async (entrenador_id, nombre, correo, password, telefono, foto_url, notas, club_id) => {
+const actualizarEntrenador = async (entrenador_id, nombre, correo, password, equipo, telefono, foto_url, notas, club_id) => {
   await db.query(
     `UPDATE entrenadores
      SET nombre = $1,
          correo = $2,
          password = COALESCE($3, password),
-         telefono = $4,
-         foto_url = $5,
-         notas = $6
-     WHERE entrenador_id = $7 AND club_id = $8`,
-    [nombre, correo, password, telefono, foto_url, notas, entrenador_id, club_id]
+         equipo = $4,
+         telefono = $5,
+         foto_url = $6,
+         notas = $7
+     WHERE entrenador_id = $8 AND club_id = $9`,
+    [nombre, correo, password, equipo, telefono, foto_url, notas, entrenador_id, club_id]
   );
 };
-
 
 module.exports = {
   crearEntrenador,

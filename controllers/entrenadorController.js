@@ -85,18 +85,19 @@ const eliminarEntrenador = async (req, res) => {
 const editarEntrenador = async (req, res) => {
   const club_id = req.user.id;
   const entrenador_id = req.params.id;
-  const { nombre, correo, password, telefono, foto_url, notas } = req.body;
+  const { nombre, correo, password, equipo, telefono, foto_url, notas } = req.body;
 
   try {
     const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
 
-    await actualizarEntrenador(entrenador_id, nombre, correo, hashedPassword, telefono, foto_url, notas, club_id);
+    await actualizarEntrenador(entrenador_id, nombre, correo, hashedPassword, equipo, telefono, foto_url, notas, club_id);
     res.json({ message: 'Entrenador actualizado correctamente' });
   } catch (error) {
     console.error("❌ Error actualizando entrenador:", error);
     res.status(500).json({ error: 'Error del servidor.' });
   }
 };
+
 
 
 module.exports = {
