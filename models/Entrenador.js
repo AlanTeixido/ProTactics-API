@@ -13,10 +13,13 @@ const crearEntrenador = async (nombre, correo, password, equipo, club_id) => {
 
 // Buscar por correo (para validar duplicados)
 const buscarPorCorreo = async (correo) => {
-  const result = await db.query(
-    'SELECT * FROM entrenadores WHERE correo = $1',
-    [correo]
-  );
+  const result = await db.query('SELECT * FROM entrenadores WHERE correo = $1', [correo]);
+  return result.rows[0];
+};
+
+// Buscar por ID (individual)
+const buscarEntrenadorPorId = async (id) => {
+  const result = await db.query('SELECT * FROM entrenadores WHERE entrenador_id = $1', [id]);
   return result.rows[0];
 };
 
@@ -38,7 +41,9 @@ const eliminarEntrenadorPorId = async (entrenador_id, club_id) => {
 };
 
 // Actualizar datos del entrenador
-const actualizarEntrenador = async (entrenador_id, nombre, correo, password, equipo, telefono, foto_url, notas, club_id) => {
+const actualizarEntrenador = async (
+  entrenador_id, nombre, correo, password, equipo, telefono, foto_url, notas, club_id
+) => {
   await db.query(
     `UPDATE entrenadores
      SET nombre = $1,
@@ -56,6 +61,7 @@ const actualizarEntrenador = async (entrenador_id, nombre, correo, password, equ
 module.exports = {
   crearEntrenador,
   buscarPorCorreo,
+  buscarEntrenadorPorId,
   obtenerEntrenadoresDelClub,
   eliminarEntrenadorPorId,
   actualizarEntrenador

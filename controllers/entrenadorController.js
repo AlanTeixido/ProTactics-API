@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const {
   crearEntrenador,
   buscarPorCorreo,
+  buscarEntrenadorPorId,
   obtenerEntrenadoresDelClub,
   eliminarEntrenadorPorId,
   actualizarEntrenador
@@ -32,7 +33,7 @@ const registrarEntrenador = async (req, res) => {
   }
 };
 
-// Obtener entrenadores del club autenticado
+// Obtener todos los entrenadores del club autenticado
 const listarEntrenadores = async (req, res) => {
   const club_id = req.user.id;
 
@@ -44,39 +45,22 @@ const listarEntrenadores = async (req, res) => {
     res.status(500).json({ error: 'Error del servidor.' });
   }
 };
-// Obtener un entrenador por ID
+
+// Obtener perfil de un entrenador por ID (protegido y validado por club_id)
 const obtenerEntrenadorPorId = async (req, res) => {
-  const { id } = req.params;
+  const entrenador_id = req.params.id;
   const club_id = req.user.id;
 
   try {
-    const result = await db.query(
-      'SELECT * FROM entrenadores WHERE entrenador_id = $1 AND club_id = $2',
-      [id, club_id]
-    );
+    const entrenador = await buscarEntrenadorPorId(entrenador_id);
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Entrenador no encontrado' });
+    if (!entrenador || entrenador.club_id !== club_id) {
+      return res.status(404).json({ error: 'Entrenador no trobat' });
     }
 
-    res.json(result.rows[0]);
+    res.json(entrenador);
   } catch (error) {
-    console.error("❌ Error obteniendo entrenador:", error);
-    res.status(500).json({ error: 'Error del servidor.' });
-  }
-};
-
-
-// Eliminar entrenador
-const eliminarEntrenador = async (req, res) => {
-  const club_id = req.user.id;
-  const { id } = req.params;
-
-  try {
-    await eliminarEntrenadorPorId(id, club_id);
-    res.json({ message: 'Entrenador eliminat correctament' });
-  } catch (error) {
-    console.error("❌ Error eliminant entrenador:", error);
+    console.error("❌ Error obtenint entrenador:", error);
     res.status(500).json({ error: 'Error del servidor.' });
   }
 };
@@ -91,19 +75,31 @@ const editarEntrenador = async (req, res) => {
     const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
 
     await actualizarEntrenador(entrenador_id, nombre, correo, hashedPassword, equipo, telefono, foto_url, notas, club_id);
-    res.json({ message: 'Entrenador actualizado correctamente' });
+    res.json({ message: 'Entrenador actualitzat correctament' });
   } catch (error) {
-    console.error("❌ Error actualizando entrenador:", error);
+    console.error("❌ Error actualitzant entrenador:", error);
     res.status(500).json({ error: 'Error del servidor.' });
   }
 };
 
+// Eliminar entrenador
+const eliminarEntrenador = async (req, res) => {
+  const club_id = req.user.id;
+  const entrenador_id = req.params.id;
 
+  try {
+    await eliminarEntrenadorPorId(entrenador_id, club_id);
+    res.json({ message: 'Entrenador eliminat correctament' });
+  } catch (error) {
+    console.error("❌ Error eliminant entrenador:", error);
+    res.status(500).json({ error: 'Error del servidor.' });
+  }
+};
 
 module.exports = {
   registrarEntrenador,
   listarEntrenadores,
-  eliminarEntrenador,
+  obtenerEntrenadorPorId,
   editarEntrenador,
-  obtenerEntrenadorPorId 
+  eliminarEntrenador
 };
