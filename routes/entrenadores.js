@@ -4,7 +4,8 @@ const {
   registrarEntrenador,
   listarEntrenadores,
   eliminarEntrenador,
-  editarEntrenador
+  editarEntrenador,
+  obtenerEntrenadorPorId
 } = require('../controllers/entrenadorController');
 const authMiddleware = require('../middleware/authMiddleware');
 

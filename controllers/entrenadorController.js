@@ -103,5 +103,6 @@ module.exports = {
   registrarEntrenador,
   listarEntrenadores,
   eliminarEntrenador,
-  editarEntrenador
+  editarEntrenador,
+  obtenerEntrenadorPorId  
 };

@@ -3,7 +3,7 @@ const router = express.Router();
 const {
   registrarClub,
   obtenerClubPorId,
-  editarPerfilClub,
+  editarPerfilClub, 
   editarPasswordClub
 } = require('../controllers/clubController');
 const db = require('../requests/db');
