@@ -97,7 +97,11 @@ const eliminarEntrenador = async (req, res) => {
 };
 
 const obtenerMiPerfilEntrenador = async (req, res) => {
-  const entrenador_id = req.user.id; // ID del entrenador loguejat
+  if (req.user.tipo !== 'entrenador') {
+    return res.status(403).json({ error: 'Accés no autoritzat. Només entrenadors.' });
+  }
+
+  const entrenador_id = req.user.id;
 
   try {
     const entrenador = await buscarEntrenadorPorId(entrenador_id);
@@ -112,6 +116,7 @@ const obtenerMiPerfilEntrenador = async (req, res) => {
     res.status(500).json({ error: 'Error del servidor.' });
   }
 };
+
 
 
 module.exports = {
