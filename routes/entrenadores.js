@@ -5,7 +5,8 @@ const {
   listarEntrenadores,
   obtenerEntrenadorPorId,
   editarEntrenador,
-  eliminarEntrenador
+  eliminarEntrenador,
+  obtenerMiPerfilEntrenador
 } = require('../controllers/entrenadorController');
 
 const authMiddleware = require('../middleware/authMiddleware');
@@ -16,5 +17,7 @@ router.get('/', authMiddleware, listarEntrenadores);
 router.get('/:id', authMiddleware, obtenerEntrenadorPorId);
 router.put('/:id', authMiddleware, editarEntrenador);
 router.delete('/:id', authMiddleware, eliminarEntrenador);
+router.get('/me', authMiddleware, obtenerMiPerfilEntrenador);
+
 
 module.exports = router;

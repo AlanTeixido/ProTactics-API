@@ -96,10 +96,29 @@ const eliminarEntrenador = async (req, res) => {
   }
 };
 
+const obtenerMiPerfilEntrenador = async (req, res) => {
+  const entrenador_id = req.user.id; // ID del entrenador loguejat
+
+  try {
+    const entrenador = await buscarEntrenadorPorId(entrenador_id);
+
+    if (!entrenador) {
+      return res.status(404).json({ error: 'Entrenador no trobat' });
+    }
+
+    res.json(entrenador);
+  } catch (error) {
+    console.error("❌ Error obtenint el teu perfil:", error);
+    res.status(500).json({ error: 'Error del servidor.' });
+  }
+};
+
+
 module.exports = {
   registrarEntrenador,
   listarEntrenadores,
   obtenerEntrenadorPorId,
   editarEntrenador,
-  eliminarEntrenador
+  eliminarEntrenador,
+  obtenerMiPerfilEntrenador
 };
