@@ -11,13 +11,14 @@ const {
 
 const authMiddleware = require('../middleware/authMiddleware');
 
-// Todas las rutas protegidas
+// ✅ Ruta específica ha d'anar abans que les rutes dinàmiques
+router.get('/me', authMiddleware, obtenerMiPerfilEntrenador);
+
+// Altres rutes protegides
 router.post('/register', authMiddleware, registrarEntrenador);
 router.get('/', authMiddleware, listarEntrenadores);
 router.get('/:id', authMiddleware, obtenerEntrenadorPorId);
 router.put('/:id', authMiddleware, editarEntrenador);
 router.delete('/:id', authMiddleware, eliminarEntrenador);
-router.get('/me', authMiddleware, obtenerMiPerfilEntrenador);
-
 
 module.exports = router;
