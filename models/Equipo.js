@@ -14,13 +14,14 @@ const obtenerEquiposDelClub = async (club_id) => {
   const result = await db.query(
     `SELECT e.*, en.nombre AS entrenador_nombre
      FROM equipos e
-     JOIN entrenadores en ON e.entrenador_id = en.entrenador_id
-     WHERE en.club_id = $1
+     LEFT JOIN entrenadores en ON e.entrenador_id = en.entrenador_id
+     WHERE e.club_id = $1
      ORDER BY e.creado_en DESC`,
     [club_id]
   );
   return result.rows;
 };
+
 
 const obtenerEquiposDelEntrenador = async (entrenador_id) => {
   const result = await db.query(
