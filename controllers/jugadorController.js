@@ -133,12 +133,12 @@ const subirJugadoresDesdeCSV = async (req, res) => {
       const apellido = (row.apellido || row.Apellido || '').trim();
       const dorsal = (row.dorsal || row.Dorsal || '').toString().trim();
       const posicion = (row.posicion || row.Posición || row.posición || '').trim();
-      const equipoNombre = (row.equipo || row.Equipo || '').trim();
+      const categoria = (row.categoria || row.Categoria || '').trim();
       let equipo_id = row.equipo_id || '';
-
-      if (!equipo_id && equipoNombre) {
-        equipo_id = await obtenerEquipoIdPorCategoria(equipoNombre, entrenador_id);
-      }
+      
+      if (!equipo_id && categoria) {
+        equipo_id = await obtenerEquipoIdPorCategoria(categoria, entrenador_id);
+      }      
 
       if (!nombre || !apellido || !dorsal || !posicion || !equipo_id) continue;
 
