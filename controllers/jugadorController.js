@@ -1,6 +1,8 @@
 const fs = require('fs');
 const csv = require('csv-parser');
 const db = require('../requests/db'); 
+const { obtenerEquipoIdPorNombre } = require('../models/Equipo');
+
 
 const {
   crearJugador,
@@ -104,16 +106,6 @@ const obtenerJugadoresPorEquipoController = async (req, res) => {
   }
 };
 
-const obtenerEquipoIdPorNombre = async (nombre, entrenador_id) => {
-  const result = await db.query(
-    `SELECT e.equipo_id
-     FROM equipos e
-     WHERE LOWER(e.nombre) = LOWER($1) AND e.entrenador_id = $2
-     LIMIT 1`,
-    [nombre, entrenador_id]
-  );
-  return result.rows[0]?.equipo_id || null;
-};
 
 
 // Controlador para subir los jugadores desde un archivo CSV

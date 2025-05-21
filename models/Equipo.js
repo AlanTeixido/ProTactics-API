@@ -61,10 +61,22 @@ const eliminarEquipoDB = async (equipo_id, club_id) => {
   );
 };
 
+const obtenerEquipoIdPorNombre = async (nombre, entrenador_id) => {
+  const result = await db.query(
+    `SELECT equipo_id
+     FROM equipos
+     WHERE LOWER(nombre) = LOWER($1) AND entrenador_id = $2
+     LIMIT 1`,
+    [nombre.trim(), entrenador_id]
+  );
+  return result.rows[0]?.equipo_id || null;
+};
+
 module.exports = {
   crearEquipo,
   obtenerEquiposDelClub,
   obtenerEquiposDelEntrenador,
   actualizarEquipoDB,
-  eliminarEquipoDB
+  eliminarEquipoDB,
+  obtenerEquipoIdPorNombre
 };
