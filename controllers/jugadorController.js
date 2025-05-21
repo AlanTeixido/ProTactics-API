@@ -1,7 +1,7 @@
 const fs = require('fs');
 const csv = require('csv-parser');
 const db = require('../requests/db'); 
-const { obtenerEquipoIdPorNombre } = require('../models/Equipo');
+const { obtenerEquipoIdPorCategoria } = require('../models/Equipo');
 
 
 const {
@@ -137,7 +137,7 @@ const subirJugadoresDesdeCSV = async (req, res) => {
       let equipo_id = row.equipo_id || '';
 
       if (!equipo_id && equipoNombre) {
-        equipo_id = await obtenerEquipoIdPorNombre(equipoNombre, entrenador_id);
+        equipo_id = await obtenerEquipoIdPorCategoria(equipoNombre, entrenador_id);
       }
 
       if (!nombre || !apellido || !dorsal || !posicion || !equipo_id) continue;
