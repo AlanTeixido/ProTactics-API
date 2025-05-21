@@ -7,25 +7,26 @@ const {
 } = require('../models/Equipo');
 
 const crearEquipoController = async (req, res) => {
-  const { nombre, categoria, entrenador_id } = req.body;
+  const { nombre, categoria } = req.body;
   const { id, tipo } = req.user; // id = club_id
 
   if (tipo !== 'club') {
     return res.status(403).json({ error: 'No tens permís per crear equips.' });
   }
 
-  if (!nombre || !categoria || !entrenador_id) {
+  if (!nombre || !categoria) {
     return res.status(400).json({ error: 'Falten camps obligatoris.' });
   }
 
   try {
-    const nuevoEquipo = await crearEquipo(nombre, categoria, entrenador_id, id); // ara sí amb els 4 paràmetres
+    const nuevoEquipo = await crearEquipo(nombre, categoria, id); // sense entrenador
     res.status(201).json({ message: 'Equip creat correctament', equipo: nuevoEquipo });
   } catch (error) {
     console.error('❌ Error creant equip:', error);
     res.status(500).json({ error: 'Error del servidor.' });
   }
 };
+
 
 const obtenerEquipos = async (req, res) => {
   const { id } = req.user;

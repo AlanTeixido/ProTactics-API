@@ -1,12 +1,13 @@
 const db = require('../requests/db');
 
-const crearEquipo = async (nombre, categoria, entrenador_id, club_id) => {
+const crearEquipo = async (nombre, categoria, club_id) => {
   const result = await db.query(
-    'INSERT INTO equipos (nombre, categoria, entrenador_id, club_id) VALUES ($1, $2, $3, $4) RETURNING *',
-    [nombre, categoria, entrenador_id, club_id]
+    'INSERT INTO equipos (nombre, categoria, club_id) VALUES ($1, $2, $3) RETURNING *',
+    [nombre, categoria, club_id]
   );
   return result.rows[0];
 };
+
 
 
 const obtenerEquiposDelClub = async (club_id) => {
