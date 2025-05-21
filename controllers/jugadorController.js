@@ -1,6 +1,7 @@
-// jugadorController.js
 const fs = require('fs');
 const csv = require('csv-parser');
+const db = require('../requests/db'); 
+
 const {
   crearJugador,
   buscarJugadorPorDorsal,
@@ -103,6 +104,18 @@ const obtenerJugadoresPorEquipoController = async (req, res) => {
   }
 };
 
+const obtenerEquipoIdPorNombre = async (nombre, entrenador_id) => {
+  const result = await db.query(
+    `SELECT e.equipo_id
+     FROM equipos e
+     WHERE LOWER(e.nombre) = LOWER($1) AND e.entrenador_id = $2
+     LIMIT 1`,
+    [nombre, entrenador_id]
+  );
+  return result.rows[0]?.equipo_id || null;
+};
+
+
 // Controlador para subir los jugadores desde un archivo CSV
 const subirJugadoresDesdeCSV = async (req, res) => {
   const entrenador_id = req.user.id;
@@ -115,39 +128,52 @@ const subirJugadoresDesdeCSV = async (req, res) => {
   let duplicados = 0;
 
   try {
-      await new Promise((resolve, reject) => {
-        fs.createReadStream(filePath)
-          .pipe(csv())
-          .on('data', (data) => jugadores.push(data))
-          .on('end', () => resolve())
-          .on('error', (err) => reject(err));
-      });
+    await new Promise((resolve, reject) => {
+      fs.createReadStream(filePath)
+        .pipe(csv())
+        .on('data', (data) => jugadores.push(data))
+        .on('end', resolve)
+        .on('error', reject);
+    });
 
-      for (const jugador of jugadores) {
-        const { nombre, apellido, dorsal, posicion, equipo_id } = jugador;
+    for (const row of jugadores) {
+      // Normalización de campos (mayúsculas/minúsculas y espacios)
+      const nombre = row.nombre || row.Nombre || '';
+      const apellido = row.apellido || row.Apellido || '';
+      const dorsal = row.dorsal || row.Dorsal || '';
+      const posicion = row.posicion || row.Posición || row.posición || '';
+      const equipoNombre = row.equipo || row.Equipo || ''; // nombre del equipo en texto
+      let equipo_id = row.equipo_id || ''; // puede venir directamente también
 
-        if (!nombre || !apellido || !dorsal || !posicion || !equipo_id) continue;
-
-        const existente = await buscarJugadorPorDorsal(dorsal, entrenador_id);
-        if (existente) {
-          duplicados++;
-          continue;
-        }
-
-        await crearJugador(nombre, apellido, dorsal, posicion, entrenador_id, equipo_id);
-        creados++;
+      // Buscar equipo_id si solo se pasó el nombre
+      if (!equipo_id && equipoNombre) {
+        equipo_id = await obtenerEquipoIdPorNombre(equipoNombre, entrenador_id);
       }
 
-      fs.unlinkSync(filePath); // Eliminar el archivo temporal
-      res.status(200).json({
-        mensaje: 'CSV processat correctament',
-        jugadors_creats: creados,
-        duplicats: duplicados
-      });
-    } catch (err) {
-      console.error('❌ Error llegint CSV:', err);
-      res.status(500).json({ error: 'Error processant l\'arxiu CSV.' });
+      if (!nombre || !apellido || !dorsal || !posicion || !equipo_id) continue;
+
+      const existe = await buscarJugadorPorDorsal(dorsal, entrenador_id);
+      if (existe) {
+        duplicados++;
+        continue;
+      }
+
+      await crearJugador(nombre.trim(), apellido.trim(), dorsal.trim(), posicion.trim(), entrenador_id, equipo_id);
+      creados++;
     }
+
+    fs.unlinkSync(filePath); // Eliminar archivo temporal
+
+    res.status(200).json({
+      mensaje: 'CSV processat correctament',
+      jugadors_creats: creados,
+      duplicats: duplicados
+    });
+
+  } catch (err) {
+    console.error('❌ Error llegint CSV:', err);
+    res.status(500).json({ error: 'Error processant l\'arxiu CSV.' });
+  }
 };
 
 module.exports = {
