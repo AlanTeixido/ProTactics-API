@@ -1,4 +1,5 @@
-### Obtenir tots els clubs
-GET https://protactics-api.onrender.com/clubes
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwidGlwbyI6ImNsdWIiLCJjb3JyZW8iOiJtb2xsZXRAZ21haWwuY29tIiwiaWF0IjoxNzQ3MzIwMjMyLCJleHAiOjE3NDc0MDY2MzJ9.WDvLFNffXMJUVo7D_Ik1mU3bB8C1tpVuYH9H-w9NRj8
-Content-Type: application/json
+### Subir jugadores CSV (VS Code REST Client)
+POST https://protactics-api.onrender.com/jugadores/upload-csv
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NiwidGlwbyI6ImVudHJlbmFkb3IiLCJjb3JyZW8iOiJhbGFuQGdtYWlsLmNvbSIsImlhdCI6MTc0NzgyNDk1MSwiZXhwIjoxNzQ3OTExMzUxfQ.SeSy7t_iPw2pHZnxmEuC0Qs4ap_qQSDBftGld5yRgIU
+
+csv=@'./Jugadores_Full_1.csv'

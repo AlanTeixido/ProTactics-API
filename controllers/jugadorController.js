@@ -123,21 +123,19 @@ const subirJugadoresDesdeCSV = async (req, res) => {
     await new Promise((resolve, reject) => {
       fs.createReadStream(filePath)
         .pipe(csv())
-        .on('data', (data) => jugadores.push(data))
+        .on('data', (row) => jugadores.push(row))
         .on('end', resolve)
         .on('error', reject);
     });
 
     for (const row of jugadores) {
-      // Normalización de campos (mayúsculas/minúsculas y espacios)
-      const nombre = row.nombre || row.Nombre || '';
-      const apellido = row.apellido || row.Apellido || '';
-      const dorsal = row.dorsal || row.Dorsal || '';
-      const posicion = row.posicion || row.Posición || row.posición || '';
-      const equipoNombre = row.equipo || row.Equipo || ''; // nombre del equipo en texto
-      let equipo_id = row.equipo_id || ''; // puede venir directamente también
+      const nombre = (row.nombre || row.Nombre || '').trim();
+      const apellido = (row.apellido || row.Apellido || '').trim();
+      const dorsal = (row.dorsal || row.Dorsal || '').toString().trim();
+      const posicion = (row.posicion || row.Posición || row.posición || '').trim();
+      const equipoNombre = (row.equipo || row.Equipo || '').trim();
+      let equipo_id = row.equipo_id || '';
 
-      // Buscar equipo_id si solo se pasó el nombre
       if (!equipo_id && equipoNombre) {
         equipo_id = await obtenerEquipoIdPorNombre(equipoNombre, entrenador_id);
       }
@@ -150,23 +148,24 @@ const subirJugadoresDesdeCSV = async (req, res) => {
         continue;
       }
 
-      await crearJugador(nombre.trim(), apellido.trim(), dorsal.trim(), posicion.trim(), entrenador_id, equipo_id);
+      await crearJugador(nombre, apellido, dorsal, posicion, entrenador_id, equipo_id);
       creados++;
     }
 
-    fs.unlinkSync(filePath); // Eliminar archivo temporal
+    fs.unlinkSync(filePath);
 
     res.status(200).json({
       mensaje: 'CSV processat correctament',
       jugadors_creats: creados,
-      duplicats: duplicados
+      duplicats: duplicados,
     });
-
   } catch (err) {
     console.error('❌ Error llegint CSV:', err);
     res.status(500).json({ error: 'Error processant l\'arxiu CSV.' });
   }
 };
+
+
 
 module.exports = {
   registrarJugador,
