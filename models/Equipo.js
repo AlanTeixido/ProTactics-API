@@ -25,7 +25,11 @@ const obtenerEquiposDelClub = async (club_id) => {
 
 const obtenerEquiposDelEntrenador = async (entrenador_id) => {
   const result = await db.query(
-    'SELECT * FROM equipos WHERE entrenador_id = $1 ORDER BY creado_en DESC',
+    `SELECT e.*
+     FROM equipos e
+     JOIN entrenadores en ON e.club_id = en.club_id
+     WHERE en.entrenador_id = $1
+     ORDER BY e.creado_en DESC`,
     [entrenador_id]
   );
   return result.rows;
