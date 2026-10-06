@@ -1,4 +1,4 @@
-const db = require('../requests/db');
+const db = require('../config/db');
 
 // Crear entrenador asociado a un club
 const crearEntrenador = async (nombre, correo, password, equipo, club_id) => {

@@ -1,6 +1,6 @@
 const fs = require('fs');
 const csv = require('csv-parser');
-const db = require('../requests/db'); 
+const db = require('../config/db'); 
 const { obtenerEquipoIdPorCategoria } = require('../models/Equipo');
 
 

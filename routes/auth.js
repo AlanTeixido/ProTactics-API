@@ -2,15 +2,10 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { Pool } = require("pg");
-require("dotenv").config();
+const pool = require("../config/db");
+const { jwtSecret, jwtExpiresIn } = require("../config/env");
 
 const router = express.Router();
-
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
-});
 
 //
 // 🔹 CLUB REGISTER
@@ -88,7 +83,7 @@ router.post("/login", async (req, res) => {
             const match = await bcrypt.compare(password, club.password);
             if (!match) return res.status(401).json({ error: "Contrasenya incorrecta." });
 
-            const token = jwt.sign({ id: club.club_id, tipo: "club", correo: club.correo }, process.env.JWT_SECRET, { expiresIn: "24h" });
+            const token = jwt.sign({ id: club.club_id, tipo: "club", correo: club.correo }, jwtSecret, { expiresIn: jwtExpiresIn });
             return res.json({ message: "Login club correcte", token, rol: "club", id: club.club_id, nombre: club.nombre });
         }
 
@@ -99,7 +94,7 @@ router.post("/login", async (req, res) => {
             const match = await bcrypt.compare(password, entrenador.password);
             if (!match) return res.status(401).json({ error: "Contrasenya incorrecta." });
 
-            const token = jwt.sign({ id: entrenador.entrenador_id, tipo: "entrenador", correo: entrenador.correo }, process.env.JWT_SECRET, { expiresIn: "24h" });
+            const token = jwt.sign({ id: entrenador.entrenador_id, tipo: "entrenador", correo: entrenador.correo }, jwtSecret, { expiresIn: jwtExpiresIn });
             return res.json({ message: "Login entrenador correcte", token, rol: "entrenador", id: entrenador.entrenador_id, nombre: entrenador.nombre });
         }
 

@@ -1,5 +1,5 @@
 // models/Usuario.js
-const db = require("../requests/db");
+const db = require('../config/db');
 
 const obtenerResumenUsuario = async (userId, rol) => {
   if (rol === "entrenador") {

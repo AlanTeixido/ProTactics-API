@@ -1,4 +1,4 @@
-const db = require('../requests/db');
+const db = require('../config/db');
 
 const crearEquipo = async (nombre, categoria, club_id) => {
   const result = await db.query(

@@ -6,7 +6,7 @@ const {
   editarPerfilClub, 
   editarPasswordClub
 } = require('../controllers/clubController');
-const db = require('../requests/db');
+const db = require('../config/db');
 const authMiddleware = require('../middleware/authMiddleware');
 
 // Registro

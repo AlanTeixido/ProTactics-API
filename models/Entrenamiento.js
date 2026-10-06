@@ -1,4 +1,4 @@
-const db = require('../requests/db');
+const db = require('../config/db');
 
 // Crear entrenamiento
 const crearEntrenamiento = async (

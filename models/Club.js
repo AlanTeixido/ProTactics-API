@@ -1,4 +1,4 @@
-const db = require('../requests/db');
+const db = require('../config/db');
 const bcrypt = require('bcryptjs');  // 🔧 ESTO FALTABA
 
 const crearClub = async (nombre, correo, password) => {

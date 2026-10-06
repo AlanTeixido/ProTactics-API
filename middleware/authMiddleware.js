@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
-const db = require('../requests/db'); // 👈 Assegura't que aquest camí és correcte
+const db = require('../config/db');
+const { jwtSecret } = require('../config/env');
 
 module.exports = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -14,7 +15,7 @@ module.exports = async (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, jwtSecret);
 
     const { id, tipo, correo } = decoded;
     const userData = { id, tipo, correo };
