@@ -1,11 +1,11 @@
 ### Provar que l'API d'entrenaments està activa
 GET https://protactics-api.onrender.com/entrenamientos
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywidGlwbyI6ImVudHJlbmFkb3IiLCJjb3JyZW8iOiJhZHJpYW5AZ21haWwuY29tIiwiaWF0IjoxNzQ0MTE5MjI1LCJleHAiOjE3NDQyMDU2MjV9.Ywki3w_cPFutkTyw_50WZxmeSQmkZ8Emkuf0hM5xgGo
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 ####
 POST https://protactics-api.onrender.com/entrenamientos
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywidGlwbyI6ImVudHJlbmFkb3IiLCJjb3JyZW8iOiJhZHJpYW5AZ21haWwuY29tIiwiaWF0IjoxNzQ0MTE5MjI1LCJleHAiOjE3NDQyMDU2MjV9.Ywki3w_cPFutkTyw_50WZxmeSQmkZ8Emkuf0hM5xgGo
+Authorization: Bearer {{token}}
 
 {
   "titulo": "Entreno de Prueba",

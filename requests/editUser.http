@@ -8,7 +8,7 @@ Content-Type: application/json
 {
   "nombre_usuario": "usuarioPrueba",
   "correo": "prueba@correo.com",
-  "contrasena": "prueba123"
+  "contrasena": "{{password}}"
 }
 
 ### Login para obtener el token
@@ -17,17 +17,17 @@ Content-Type: application/json
 
 {
   "correo": "prueba@correo.com",
-  "contrasena": "prueba123"
+  "contrasena": "{{password}}"
 }
 
 ### Cargar datos del usuario (ID: 8)
 GET https://protactics-api.onrender.com/usuarios/8
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OSwibm9tYnJlX3VzdWFyaW8iOiJ1c3VhcmlvUHJ1ZWJhIiwiY29ycmVvIjoicHJ1ZWJhQGNvcnJlby5jb20iLCJpYXQiOjE3NDExOTIzMjMsImV4cCI6MTc0MTI3ODcyM30.z1hnQ-5jt9LDmk3VfgmOmTaMWdKOSDNp529qUVuYaDM
+Authorization: Bearer {{token}}
 
 ### Actualizar nombre de usuario y correo (ID: 8)
 PUT https://protactics-api.onrender.com/usuarios/8
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OSwibm9tYnJlX3VzdWFyaW8iOiJ1c3VhcmlvUHJ1ZWJhIiwiY29ycmVvIjoicHJ1ZWJhQGNvcnJlby5jb20iLCJpYXQiOjE3NDExOTIzMjMsImV4cCI6MTc0MTI3ODcyM30.z1hnQ-5jt9LDmk3VfgmOmTaMWdKOSDNp529qUVuYaDM
+Authorization: Bearer {{token}}
 
 {
     "nombre_usuario": "UsuarioActualizado",
@@ -37,17 +37,17 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OSwibm9tYnJlX
 ### Cambiar contraseña (sin ID, porque el userId viene del token)
 PUT https://protactics-api.onrender.com/password
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OCwibm9tYnJlX3VzdWFyaW8iOiJudWV2b1VzdWFyaW8iLCJjb3JyZW8iOiJudWV2b0Bjb3JyZW8uY29tIiwiaWF0IjoxNzQxMTkxOTY5LCJleHAiOjE3NDEyNzgzNjl9.S8yknCq4rCpd7TZNbNgshMTD8KTOqc8tcYZupUKnG9M
+Authorization: Bearer {{token}}
 
 {
-    "contrasena_actual": "password123",
-    "contrasena_nova": "nuevaPassword456"
+    "contrasena_actual": "{{password}}",
+    "contrasena_nova": "{{password}}"
 }
 
 
 ### Probar con token inválido (debe devolver 401)
 GET https://protactics-api.onrender.com/usuarios/8
-Authorization: Bearer INVALIDO
+Authorization: Bearer {{token}}
 
 ### Intentar actualizar sin token (debe devolver 401)
 PUT https://protactics-api.onrender.com/usuarios/8
@@ -61,17 +61,17 @@ Content-Type: application/json
 ### Intentar cambiar contraseña con contraseña actual incorrecta
 PUT https://protactics-api.onrender.com/password
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OCwibm9tYnJlX3VzdWFyaW8iOiJudWV2b1VzdWFyaW8iLCJjb3JyZW8iOiJudWV2b0Bjb3JyZW8uY29tIiwiaWF0IjoxNzQxMTkxOTY5LCJleHAiOjE3NDEyNzgzNjl9.S8yknCq4rCpd7TZNbNgshMTD8KTOqc8tcYZupUKnG9M
+Authorization: Bearer {{token}}
 
 {
-    "contrasena_actual": "incorrecta",
-    "contrasena_nova": "otraNuevaPassword"
+    "contrasena_actual": "{{password}}",
+    "contrasena_nova": "{{password}}"
 }
 
 ### Intentar actualizar nombre/correo con campos vacíos
 PUT https://protactics-api.onrender.com/usuarios/8
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OCwibm9tYnJlX3VzdWFyaW8iOiJudWV2b1VzdWFyaW8iLCJjb3JyZW8iOiJudWV2b0Bjb3JyZW8uY29tIiwiaWF0IjoxNzQxMTkxOTY5LCJleHAiOjE3NDEyNzgzNjl9.S8yknCq4rCpd7TZNbNgshMTD8KTOqc8tcYZupUKnG9M
+Authorization: Bearer {{token}}
 
 {
     "nombre_usuario": "",
@@ -81,9 +81,9 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OCwibm9tYnJlX
 ### Intentar cambiar contraseña con campos vacíos
 PUT https://protactics-api.onrender.com/password
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OCwibm9tYnJlX3VzdWFyaW8iOiJudWV2b1VzdWFyaW8iLCJjb3JyZW8iOiJudWV2b0Bjb3JyZW8uY29tIiwiaWF0IjoxNzQxMTkxOTY5LCJleHAiOjE3NDEyNzgzNjl9.S8yknCq4rCpd7TZNbNgshMTD8KTOqc8tcYZupUKnG9M
+Authorization: Bearer {{token}}
 
 {
-    "contrasena_actual": "",
-    "contrasena_nova": ""
+    "contrasena_actual": "{{password}}",
+    "contrasena_nova": "{{password}}"
 }

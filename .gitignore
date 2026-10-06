@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Environment (secrets). Only the template is versioned.
+.env
+.env.*
+!.env.example
+
+# Local uploads, logs and editor settings
+uploads/
+npm-debug.log*
+*.log
+.vscode/

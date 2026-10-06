@@ -1,5 +1,5 @@
 ### Subir jugadores CSV (VS Code REST Client)
 POST https://protactics-api.onrender.com/jugadores/upload-csv
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NiwidGlwbyI6ImVudHJlbmFkb3IiLCJjb3JyZW8iOiJhbGFuQGdtYWlsLmNvbSIsImlhdCI6MTc0NzgyNDk1MSwiZXhwIjoxNzQ3OTExMzUxfQ.SeSy7t_iPw2pHZnxmEuC0Qs4ap_qQSDBftGld5yRgIU
+Authorization: Bearer {{token}}
 
 csv=@'./Jugadores_Full_1.csv'

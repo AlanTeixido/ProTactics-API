@@ -14,7 +14,7 @@ Content-Type: application/json
 {
   "nombre_usuario": "AlanTeixidoUpdated",
   "correo": "alan.teixido@example.com",
-  "contrasena_hash": "NuevaPassword",
+  "contrasena_hash": "{{password}}",
   "rol": "usuario"
 }
 
@@ -25,7 +25,7 @@ Content-Type: application/json
 {
   "nombre_usuario": "AdminProTacticsUpdated",
   "correo": "admin@protactics.com",
-  "contrasena_hash": "NuevaPasswordAdmin",
+  "contrasena_hash": "{{password}}",
   "rol": "administrador"
 }
 

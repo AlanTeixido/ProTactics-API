@@ -7,8 +7,8 @@ Content-Type: application/json
 
 {
   "nombre_usuario": "hola",
-  "correo": "hola2@gmail.com",
-  "contrasena": "hola"
+  "correo": "usuario@example.com",
+  "contrasena": "{{password}}"
 }
 
 ### Intentar registrar un usuario sin datos (debe devolver error)
@@ -18,7 +18,7 @@ Content-Type: application/json
 {
   "nombre_usuario": "",
   "correo": "",
-  "contrasena": ""
+  "contrasena": "{{password}}"
 }
 
 ### Inicio de sesión con usuario registrado
@@ -26,8 +26,8 @@ POST https://protactics-api.onrender.com/auth/login
 Content-Type: application/json
 
 {
-  "correo": "ulises@gmail.com",
-  "contrasena": "ana"
+  "correo": "usuario@example.com",
+  "contrasena": "{{password}}"
 }
 
 ### Inicio de sesión con credenciales incorrectas
@@ -36,7 +36,7 @@ Content-Type: application/json
 
 {
   "correo": "alan.teixido@example.com",
-  "contrasena": "incorrectPassword"
+  "contrasena": "{{password}}"
 }
 
 ### Inicio de sesión con un usuario que no existe
@@ -45,5 +45,5 @@ Content-Type: application/json
 
 {
   "correo": "inexistente@correo.com",
-  "contrasena": "password123"
+  "contrasena": "{{password}}"
 }
