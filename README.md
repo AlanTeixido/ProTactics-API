@@ -74,4 +74,4 @@ The seed creates four demo accounts, all with the password `ProTactics2026`:
 
 ---
 
-Built by [Alan Teixidó](https://alanteixido.dev).
+Part of ProTactics, a three-person team project by Alex ([@mcalex468](https://github.com/mcalex468)), Adri ([@rodriguezAdri](https://github.com/rodriguezAdri)) and Alan ([@AlanTeixido](https://github.com/AlanTeixido)).
