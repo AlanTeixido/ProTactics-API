@@ -1,0 +1,130 @@
+# VS Code REST Client: endpoints used by a coach account (seed.sql demo data).
+@baseUrl = http://localhost:3000
+
+### Login as coach (run first; the token is reused below)
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "correo": "marta.soler@rierablava.example",
+  "password": "ProTactics2026"
+}
+
+###
+@token = {{login.response.body.token}}
+@entrenadorId = {{login.response.body.id}}
+
+### My profile
+GET {{baseUrl}}/entrenadores/me
+Authorization: Bearer {{token}}
+
+### Edit my profile (partial update)
+PUT {{baseUrl}}/entrenadores/{{entrenadorId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "telefono": "+34 612 384 905",
+  "notas": "Coordinadora de fútbol base. UEFA B."
+}
+
+### Teams of my club
+GET {{baseUrl}}/equipos/entrenador
+Authorization: Bearer {{token}}
+
+### My players
+GET {{baseUrl}}/jugadores
+Authorization: Bearer {{token}}
+
+### Players of a team of my club
+GET {{baseUrl}}/jugadores/equipo/1
+Authorization: Bearer {{token}}
+
+### Create a player
+POST {{baseUrl}}/jugadores/register
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "Roc",
+  "apellido": "Vilaró Soler",
+  "dorsal": 15,
+  "posicion": "Defensa",
+  "equipo_id": 1
+}
+
+### Upload players from CSV (columns: Nombre, Apellido, Dorsal, Posición, Categoria)
+POST {{baseUrl}}/jugadores/upload-csv
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=ProTacticsBoundary
+
+--ProTacticsBoundary
+Content-Disposition: form-data; name="csv"; filename="jugadores.csv"
+Content-Type: text/csv
+
+< ../Jugadores_Full_1.csv
+--ProTacticsBoundary--
+
+### My training sessions
+GET {{baseUrl}}/entrenamientos
+Authorization: Bearer {{token}}
+
+### Create a training session (players must belong to my club)
+POST {{baseUrl}}/entrenamientos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "titulo": "Posesión 5x5 con comodines",
+  "descripcion": "Espacio de 30x20 m, dos comodines exteriores. Máximo dos toques.",
+  "categoria": "tactica",
+  "campo": "Campo F7 completo",
+  "fecha_entrenamiento": "2026-10-13",
+  "duracion_repeticion": { "minutes": 8 },
+  "repeticiones": 4,
+  "descanso": 2,
+  "valoracion": 4,
+  "imagen_url": "",
+  "notas": "",
+  "jugadores": [1, 2, 3, 4]
+}
+
+### Edit a training session (partial update)
+PUT {{baseUrl}}/entrenamientos/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "valoracion": 5
+}
+
+### Public feed
+GET {{baseUrl}}/publicaciones
+
+### Publish one of my training sessions
+POST {{baseUrl}}/publicaciones/desde-entrenamiento
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "entrenamiento_id": 2,
+  "titulo": "Finalización 1x1 ante el portero",
+  "contenido": "Conducción desde el centro del campo y definición en 1x1.",
+  "categoria": "psicologica",
+  "campo": "Campo F7 - área sur",
+  "fecha_entrenamiento": "2026-09-29",
+  "duracion_repeticion": { "minutes": 8 },
+  "repeticiones": 3,
+  "total_duracion": { "minutes": 28 },
+  "descanso": 2,
+  "notas_adicionales": ""
+}
+
+### Like a post
+POST {{baseUrl}}/publicaciones/2/like
+Authorization: Bearer {{token}}
+
+### My activity summary
+GET {{baseUrl}}/usuarios/{{entrenadorId}}/resumen?rol=entrenador
+Authorization: Bearer {{token}}

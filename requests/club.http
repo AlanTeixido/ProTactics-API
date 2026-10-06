@@ -1,5 +1,107 @@
-### Subir jugadores CSV (VS Code REST Client)
-POST https://protactics-api.onrender.com/jugadores/upload-csv
+# VS Code REST Client: endpoints used by a club account (seed.sql demo data).
+@baseUrl = http://localhost:3000
+
+### Login as club (run first; the token is reused below)
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "correo": "club@rierablava.example",
+  "password": "ProTactics2026"
+}
+
+###
+@token = {{login.response.body.token}}
+@clubId = {{login.response.body.id}}
+
+### Public list of clubs (no emails)
+GET {{baseUrl}}/clubes
+
+### Club profile
+GET {{baseUrl}}/clubes/{{clubId}}
 Authorization: Bearer {{token}}
 
-csv=@'./Jugadores_Full_1.csv'
+### Edit club profile
+PUT {{baseUrl}}/clubes/{{clubId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "UE Riera Blava",
+  "correo": "club@rierablava.example",
+  "ubicacion": "Granollers, Barcelona",
+  "foto_url": "https://images.example/riera-blava.png"
+}
+
+### Change password (needs the current one)
+PUT {{baseUrl}}/clubes/{{clubId}}/password
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "contrasena_actual": "ProTactics2026",
+  "contrasena_nova": "ProTactics2026"
+}
+
+### Coaches of the club
+GET {{baseUrl}}/entrenadores
+Authorization: Bearer {{token}}
+
+### Create a coach
+POST {{baseUrl}}/entrenadores/register
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "Sergi Costa Bru",
+  "correo": "sergi.costa@rierablava.example",
+  "password": "change-me-2026",
+  "equipo": "Benjamín A"
+}
+
+### Edit a coach (partial update)
+PUT {{baseUrl}}/entrenadores/2
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "Pau Ferrer Roig",
+  "correo": "pau.ferrer@rierablava.example"
+}
+
+### Delete a coach
+DELETE {{baseUrl}}/entrenadores/3
+Authorization: Bearer {{token}}
+
+### Teams of the club
+GET {{baseUrl}}/equipos
+Authorization: Bearer {{token}}
+
+### Create a team
+POST {{baseUrl}}/equipos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "Infantil A",
+  "categoria": "Infantil"
+}
+
+### Edit a team
+PUT {{baseUrl}}/equipos/2
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "Alevín B",
+  "categoria": "Alevín"
+}
+
+### Players of all the club's teams
+GET {{baseUrl}}/jugadores
+Authorization: Bearer {{token}}
+
+### Activity summary of the club
+GET {{baseUrl}}/usuarios/{{clubId}}/resumen?rol=club
+Authorization: Bearer {{token}}

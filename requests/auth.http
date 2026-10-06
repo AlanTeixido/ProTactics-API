@@ -1,0 +1,69 @@
+# VS Code REST Client. Demo accounts come from seed.sql (password: ProTactics2026).
+@baseUrl = http://localhost:3000
+@password = ProTactics2026
+
+### Health check
+GET {{baseUrl}}/
+
+### Login as club
+# @name loginClub
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "correo": "club@rierablava.example",
+  "password": "{{password}}"
+}
+
+### Login as coach
+# @name loginEntrenador
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "correo": "marta.soler@rierablava.example",
+  "password": "{{password}}"
+}
+
+### Wrong password (401, same message as an unknown email)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "correo": "club@rierablava.example",
+  "password": "not-the-password"
+}
+
+### Register a new club (public)
+POST {{baseUrl}}/auth/register/club
+Content-Type: application/json
+
+{
+  "nombre": "CF Turó Verd",
+  "correo": "club@turoverd.example",
+  "password": "change-me-2026",
+  "ubicacion": "Sabadell"
+}
+
+### Register a coach in the authenticated club (club token required)
+POST {{baseUrl}}/auth/register/entrenador
+Authorization: Bearer {{loginClub.response.body.token}}
+Content-Type: application/json
+
+{
+  "nombre": "Quim Roca Esteve",
+  "correo": "quim.roca@rierablava.example",
+  "password": "change-me-2026",
+  "equipo": "Alevín B"
+}
+
+### Chatbot: list of questions
+GET {{baseUrl}}/api/chatbot/preguntas
+
+### Chatbot: ask
+POST {{baseUrl}}/api/chatbot/chat
+Content-Type: application/json
+
+{
+  "pregunta": "crear equipo"
+}
