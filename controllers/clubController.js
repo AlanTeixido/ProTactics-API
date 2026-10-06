@@ -1,84 +1,88 @@
-const {
-  crearClub,
-  buscarPorCorreo,
-  buscarClubPorId,
-  actualizarPerfilClub,
-  actualizarPasswordClub,
-} = require('../models/Club');
+const bcrypt = require('bcryptjs');
+const Club = require('../models/Club');
+const { correoEnUso } = require('../models/Usuario');
+const { normalizeEmail } = require('../utils/validation');
 
+// Shared by POST /clubes/register and POST /auth/register/club.
+// Returns the new club profile, or null when the email is already used.
+const crearNouClub = async ({ nombre, correo, password, ubicacion }) => {
+  const correoNormalitzat = normalizeEmail(correo);
+  if (await correoEnUso(correoNormalitzat)) return null;
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  return Club.crearClub({ nombre: nombre.trim(), correo: correoNormalitzat, passwordHash, ubicacion });
+};
+
+const esElMateixClub = (user, clubId) => user.tipo === 'club' && user.id === clubId;
+const potVeureClub = (user, clubId) =>
+  esElMateixClub(user, clubId) || (user.tipo === 'entrenador' && user.club_id === clubId);
+
+// POST /clubes/register (public)
 const registrarClub = async (req, res) => {
-  const { nombre, correo, password } = req.body;
-
-  if (!nombre || !correo || !password) {
-    return res.status(400).json({ error: 'Falten dades obligatòries.' });
-  }
-
-  try {
-    const existe = await buscarPorCorreo(correo);
-    if (existe) {
-      return res.status(409).json({ error: 'Ja existeix un club amb aquest correu.' });
-    }
-
-    const nuevoClub = await crearClub(nombre, correo, password);
-    res.status(201).json({ message: 'Club creat correctament', club: nuevoClub });
-  } catch (error) {
-    console.error("❌ Error creant club:", error);
-    res.status(500).json({ error: 'Error del servidor.' });
-  }
+  const club = await crearNouClub(req.body);
+  if (!club) return res.status(409).json({ error: 'Ja existeix un compte amb aquest correu.' });
+  return res.status(201).json({ message: 'Club creat correctament', club });
 };
 
+// GET /clubes (public): no emails, no password hashes.
+const listarClubs = async (req, res) => {
+  res.status(200).json(await Club.listarClubs());
+};
+
+// GET /clubes/:id: the club itself or one of its coaches.
 const obtenerClubPorId = async (req, res) => {
-  const id = req.params.id;
-  try {
-    const club = await buscarClubPorId(id);
-    if (!club) return res.status(404).json({ error: 'Club no trobat.' });
-    res.status(200).json(club);
-  } catch (error) {
-    console.error('❌ Error obtenint club:', error);
-    res.status(500).json({ error: 'Error del servidor.' });
+  const id = Number(req.params.id);
+  if (!potVeureClub(req.user, id)) {
+    return res.status(403).json({ error: 'No tens permís per veure aquest club.' });
   }
+
+  const club = await Club.buscarClubPorId(id);
+  if (!club) return res.status(404).json({ error: 'Club no trobat.' });
+  return res.status(200).json(club);
 };
 
+// PUT /clubes/:id: only the club itself.
 const editarPerfilClub = async (req, res) => {
-  const id = req.params.id;
-  const { nombre, correo, ubicacion, foto_url } = req.body;
-
-  if (!nombre || !correo) {
-    return res.status(400).json({ error: 'Nom i correu són obligatoris.' });
+  const id = Number(req.params.id);
+  if (!esElMateixClub(req.user, id)) {
+    return res.status(403).json({ error: 'Només pots editar el teu propi perfil.' });
   }
 
-  try {
-    await actualizarPerfilClub(id, { nombre, correo, ubicacion, foto_url });
-    res.status(200).json({ message: 'Perfil actualitzat correctament' });
-  } catch (error) {
-    console.error('❌ Error actualitzant perfil:', error);
-    res.status(500).json({ error: 'Error del servidor.' });
+  const { nombre, ubicacion, foto_url } = req.body;
+  const correo = normalizeEmail(req.body.correo);
+  if (await correoEnUso(correo, { exceptClubId: id })) {
+    return res.status(409).json({ error: 'Ja existeix un compte amb aquest correu.' });
   }
+
+  const updated = await Club.actualizarPerfilClub(id, { nombre: nombre.trim(), correo, ubicacion, foto_url });
+  if (!updated) return res.status(404).json({ error: 'Club no trobat.' });
+  return res.status(200).json({ message: 'Perfil actualitzat correctament' });
 };
 
+// PUT /clubes/:id/password: only the club itself, with its current password.
 const editarPasswordClub = async (req, res) => {
-  const id = req.params.id;
+  const id = Number(req.params.id);
+  if (!esElMateixClub(req.user, id)) {
+    return res.status(403).json({ error: 'Només pots canviar la teva pròpia contrasenya.' });
+  }
+
   const { contrasena_actual, contrasena_nova } = req.body;
+  const hashActual = await Club.obtenerPasswordHash(id);
+  if (!hashActual) return res.status(404).json({ error: 'Club no trobat.' });
 
-  if (!contrasena_actual || !contrasena_nova) {
-    return res.status(400).json({ error: 'Falten camps obligatoris.' });
+  if (!(await bcrypt.compare(contrasena_actual, hashActual))) {
+    return res.status(401).json({ error: 'Contrasenya actual incorrecta.' });
   }
 
-  try {
-    const canviada = await actualizarPasswordClub(id, contrasena_actual, contrasena_nova);
-    if (!canviada) {
-      return res.status(401).json({ error: 'Contrasenya actual incorrecta.' });
-    }
-    res.status(200).json({ message: 'Contrasenya actualitzada correctament' });
-  } catch (error) {
-    console.error('❌ Error canviant contrasenya:', error);
-    res.status(500).json({ error: 'Error del servidor.' });
-  }
+  await Club.actualizarPasswordClub(id, await bcrypt.hash(contrasena_nova, 10));
+  return res.status(200).json({ message: 'Contrasenya actualitzada correctament' });
 };
 
 module.exports = {
+  crearNouClub,
   registrarClub,
+  listarClubs,
   obtenerClubPorId,
   editarPerfilClub,
-  editarPasswordClub
+  editarPasswordClub,
 };

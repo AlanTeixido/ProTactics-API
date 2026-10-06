@@ -1,164 +1,112 @@
-const {
-    obtenerPublicaciones,
-    obtenerPublicacionPorId: obtenerPublicacionPorIdModel, 
-    crearPublicacion,
-    crearPublicacionDesdeEntrenamiento,
-    eliminarPublicacion,
-    darLike,
-    quitarLike
-} = require('../models/Publicacion');
+const Publicacion = require('../models/Publicacion');
+const { perteneceAlEntrenador } = require('../models/Entrenamiento');
+const { toInterval } = require('../utils/validation');
 
+const emptyToNull = (value) => (value === '' ? null : value);
+
+// GET /publicaciones (public feed)
 const obtenerTodasPublicaciones = async (req, res) => {
-    try {
-        const publicaciones = await obtenerPublicaciones();
-        res.json(publicaciones);
-    } catch (error) {
-        console.error("Error obteniendo publicaciones:", error);
-        res.status(500).json({ error: "Error del servidor." });
-    }
+  res.json(await Publicacion.obtenerPublicaciones());
 };
 
+// GET /publicaciones/:id (public)
 const obtenerPublicacionPorId = async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        const publicacion = await obtenerPublicacionPorIdModel(id);
-        if (!publicacion) {
-            return res.status(404).json({ error: "Publicación no encontrada." });
-        }
-        res.json(publicacion);
-    } catch (error) {
-        console.error("Error obteniendo publicación por ID:", error);
-        res.status(500).json({ error: "Error del servidor." });
-    }
+  const publicacion = await Publicacion.obtenerPublicacionPorId(Number(req.params.id));
+  if (!publicacion) return res.status(404).json({ error: 'Publicación no encontrada.' });
+  return res.json(publicacion);
 };
 
+// POST /publicaciones (coach of a club)
 const crearNuevaPublicacion = async (req, res) => {
-    const { titulo, contenido, imagen_url, entrenamiento_id } = req.body;
-    const entrenador_id = req.user.id;
+  if (!req.user.club_id) {
+    return res.status(403).json({ error: 'Solo los entrenadores de club pueden publicar.' });
+  }
 
-    if (!req.user.club_id) {
-        return res.status(403).json({ error: "Solo los entrenadores de club pueden publicar." });
-    }
+  const { titulo, contenido, imagen_url, entrenamiento_id } = req.body;
+  if (entrenamiento_id && !(await perteneceAlEntrenador(entrenamiento_id, req.user.id))) {
+    return res.status(404).json({ error: 'Entrenamiento no encontrado.' });
+  }
 
-    if (!titulo || !contenido) {
-        return res.status(400).json({ error: "Título y contenido son obligatorios." });
-    }
-
-    try {
-        const nuevaPublicacion = await crearPublicacion(entrenador_id, titulo, contenido, imagen_url, entrenamiento_id);
-        res.status(201).json(nuevaPublicacion);
-    } catch (error) {
-        console.error("Error creando la publicación:", error);
-        res.status(500).json({ error: "Error del servidor." });
-    }
+  const nuevaPublicacion = await Publicacion.crearPublicacion(
+    req.user.id,
+    titulo.trim(),
+    contenido,
+    imagen_url,
+    entrenamiento_id || null
+  );
+  return res.status(201).json(nuevaPublicacion);
 };
 
+// POST /publicaciones/desde-entrenamiento (coach of a club, own sessions only)
 const subirPublicacionDesdeEntrenamiento = async (req, res) => {
-    const entrenador_id = req.user.id;
+  if (!req.user.club_id) {
+    return res.status(403).json({ error: 'Solo los entrenadores de club pueden publicar.' });
+  }
 
-    if (!req.user.club_id) {
-        return res.status(403).json({ error: "Solo los entrenadores de club pueden publicar." });
-    }
+  const body = req.body;
+  if (!(await perteneceAlEntrenador(body.entrenamiento_id, req.user.id))) {
+    return res.status(404).json({ error: 'Entrenamiento no encontrado.' });
+  }
 
-    const {
-        entrenamiento_id,
-        titulo,
-        contenido,
-        imagen_url,
-        categoria,
-        campo,
-        fecha_entrenamiento,
-        duracion_repeticion,
-        repeticiones,
-        total_duracion,
-        descanso,
-        notas_adicionales
-    } = req.body;
-
-    // Validar campos obligatorios
-    if (!titulo || !contenido || !entrenamiento_id || !fecha_entrenamiento) {
-        return res.status(400).json({ error: "Faltan datos obligatorios." });
-    }
-
-    try {
-        const publicacion = await crearPublicacionDesdeEntrenamiento({
-            entrenador_id,
-            entrenamiento_id,
-            titulo,
-            contenido,
-            imagen_url,
-            categoria,
-            campo,
-            fecha_entrenamiento,
-            duracion_repeticion,
-            repeticiones,
-            total_duracion,
-            descanso,
-            notas_adicionales
-        });
-
-        res.status(201).json(publicacion);
-    } catch (error) {
-        console.error("Error al subir la publicación desde entrenamiento:", error);
-        res.status(500).json({ error: "Error del servidor." });
-    }
+  const publicacion = await Publicacion.crearPublicacionDesdeEntrenamiento({
+    entrenador_id: req.user.id,
+    entrenamiento_id: body.entrenamiento_id,
+    titulo: body.titulo.trim(),
+    contenido: body.contenido,
+    imagen_url: body.imagen_url,
+    categoria: emptyToNull(body.categoria),
+    campo: emptyToNull(body.campo),
+    fecha_entrenamiento: body.fecha_entrenamiento,
+    duracion_repeticion: toInterval(body.duracion_repeticion),
+    repeticiones: emptyToNull(body.repeticiones),
+    total_duracion: toInterval(body.total_duracion),
+    descanso: emptyToNull(body.descanso),
+    notas_adicionales: emptyToNull(body.notas_adicionales),
+  });
+  return res.status(201).json(publicacion);
 };
 
+// DELETE /publicaciones/:id (author only)
 const eliminarPublicacionPorId = async (req, res) => {
-    const { id } = req.params;
-    const entrenador_id = req.user.id;
+  if (!req.user.club_id) {
+    return res.status(403).json({ error: 'Solo los entrenadores de club pueden eliminar publicaciones.' });
+  }
 
-    if (!req.user.club_id) {
-        return res.status(403).json({ error: "Solo los entrenadores de club pueden eliminar publicaciones." });
-    }
-
-    try {
-        await eliminarPublicacion(id, entrenador_id);
-        res.json({ mensaje: "Publicación eliminada correctamente." });
-    } catch (error) {
-        res.status(500).json({ error: "Error eliminando la publicación." });
-    }
+  const deleted = await Publicacion.eliminarPublicacion(Number(req.params.id), req.user.id);
+  if (!deleted) return res.status(404).json({ error: 'Publicación no encontrada.' });
+  return res.json({ mensaje: 'Publicación eliminada correctamente.' });
 };
 
+// POST /publicaciones/:id/like (coach of a club)
 const likePublicacion = async (req, res) => {
-    const { id } = req.params;
-    const entrenador_id = req.user.id;
+  if (!req.user.club_id) {
+    return res.status(403).json({ error: 'Solo los entrenadores de club pueden dar like.' });
+  }
 
-    if (!req.user.club_id) {
-        return res.status(403).json({ error: "Solo los entrenadores de club pueden dar like." });
-    }
-
-    try {
-        await darLike(id, entrenador_id);
-        res.json({ mensaje: "Like añadido." });
-    } catch (error) {
-        res.status(500).json({ error: "Error al dar like." });
-    }
+  const id = Number(req.params.id);
+  if (!(await Publicacion.existePublicacion(id))) {
+    return res.status(404).json({ error: 'Publicación no encontrada.' });
+  }
+  await Publicacion.darLike(id, req.user.id);
+  return res.json({ mensaje: 'Like añadido.' });
 };
 
+// DELETE /publicaciones/:id/like (coach of a club)
 const unlikePublicacion = async (req, res) => {
-    const { id } = req.params;
-    const entrenador_id = req.user.id;
+  if (!req.user.club_id) {
+    return res.status(403).json({ error: 'Solo los entrenadores de club pueden quitar like.' });
+  }
 
-    if (!req.user.club_id) {
-        return res.status(403).json({ error: "Solo los entrenadores de club pueden quitar like." });
-    }
-
-    try {
-        await quitarLike(id, entrenador_id);
-        res.json({ mensaje: "Like eliminado." });
-    } catch (error) {
-        res.status(500).json({ error: "Error al quitar like." });
-    }
+  await Publicacion.quitarLike(Number(req.params.id), req.user.id);
+  return res.json({ mensaje: 'Like eliminado.' });
 };
 
 module.exports = {
-    obtenerTodasPublicaciones,
-    obtenerPublicacionPorId,
-    crearNuevaPublicacion,
-    subirPublicacionDesdeEntrenamiento,
-    eliminarPublicacionPorId,
-    likePublicacion,
-    unlikePublicacion
+  obtenerTodasPublicaciones,
+  obtenerPublicacionPorId,
+  crearNuevaPublicacion,
+  subirPublicacionDesdeEntrenamiento,
+  eliminarPublicacionPorId,
+  likePublicacion,
+  unlikePublicacion,
 };

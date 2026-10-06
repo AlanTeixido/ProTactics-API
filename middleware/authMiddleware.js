@@ -2,39 +2,46 @@ const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 const { jwtSecret } = require('../config/env');
 
-module.exports = async (req, res, next) => {
-  const authHeader = req.headers['authorization'];
+const ROLES = ['club', 'entrenador'];
 
-  if (!authHeader) {
+// Verifies the bearer token and sets req.user = { id, tipo, correo[, club_id] }.
+// The account must still exist; for coaches the current club_id is loaded from the DB.
+module.exports = async (req, res, next) => {
+  const header = req.headers.authorization;
+  if (!header) {
     return res.status(401).json({ error: 'Falta el token' });
   }
 
-  const token = authHeader.split(' ')[1];
-  if (!token) {
+  const [scheme, token] = header.split(' ');
+  if (!/^Bearer$/i.test(scheme || '') || !token) {
     return res.status(401).json({ error: 'Token no proporcionat' });
   }
 
+  let payload;
   try {
-    const decoded = jwt.verify(token, jwtSecret);
+    payload = jwt.verify(token, jwtSecret, { algorithms: ['HS256'] });
+  } catch (err) {
+    return res.status(401).json({ error: 'Token invàlid o caducat' });
+  }
 
-    const { id, tipo, correo } = decoded;
-    const userData = { id, tipo, correo };
+  const { id, tipo, correo } = payload;
+  if (!Number.isInteger(id) || !ROLES.includes(tipo)) {
+    return res.status(401).json({ error: 'Token invàlid o caducat' });
+  }
 
-    // 🔎 Si és entrenador, busquem el seu club_id
+  try {
+    const user = { id, tipo, correo };
     if (tipo === 'entrenador') {
-      const result = await db.query(
-        'SELECT club_id FROM entrenadores WHERE entrenador_id = $1',
-        [id]
-      );
-
-      if (result.rows.length > 0) {
-        userData.club_id = result.rows[0].club_id;
-      }
+      const { rows } = await db.query('SELECT club_id FROM entrenadores WHERE entrenador_id = $1', [id]);
+      if (rows.length === 0) return res.status(401).json({ error: 'Usuari no trobat' });
+      user.club_id = rows[0].club_id;
+    } else {
+      const { rows } = await db.query('SELECT 1 FROM clubs WHERE club_id = $1', [id]);
+      if (rows.length === 0) return res.status(401).json({ error: 'Usuari no trobat' });
     }
-
-    req.user = userData;
-    next();
-  } catch (error) {
-    return res.status(403).json({ error: 'Token invàlid o caducat' });
+    req.user = user;
+    return next();
+  } catch (err) {
+    return next(err);
   }
 };

@@ -1,4 +1,5 @@
 const express = require('express');
+const { validateBody } = require('../utils/validation');
 const router = express.Router();  // Usamos router de Express para manejar las rutas
 
 // 🔹 Definición de preguntas y respuestas
@@ -79,9 +80,9 @@ router.get('/preguntas', (req, res) => {
 });
 
 // Ruta para obtener una respuesta basada en una pregunta
-router.post('/chat', (req, res) => {
-  const { pregunta } = req.body;  // Extraemos la pregunta del cuerpo de la solicitud
-  const respuesta = preguntasApp.find(p => p.clave.some(clave => clave.toLowerCase() === pregunta.toLowerCase()));  // Buscamos la respuesta
+router.post('/chat', validateBody({ pregunta: { type: 'string', required: true, max: 500 } }), (req, res) => {
+  const pregunta = req.body.pregunta.trim().toLowerCase();
+  const respuesta = preguntasApp.find(p => p.clave.some(clave => clave.toLowerCase() === pregunta));  // Buscamos la respuesta
 
   if (respuesta) {
     res.json({ respuesta: respuesta.respuesta });  // Si se encuentra, devolvemos la respuesta

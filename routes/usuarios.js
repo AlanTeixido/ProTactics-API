@@ -1,10 +1,13 @@
-// routes/usuarios.js
 const express = require('express');
-const router = express.Router();
-const { getResumen } = require('../controllers/usuarioController');
 const authMiddleware = require('../middleware/authMiddleware');
+const asyncHandler = require('../utils/asyncHandler');
+const { validateIdParam } = require('../utils/validation');
+const { getResumen } = require('../controllers/usuarioController');
 
-// Ruta per obtenir el perfil/resumen d’un usuari
-router.get('/:id/resumen', authMiddleware, getResumen);
+const router = express.Router();
+router.param('id', validateIdParam);
+
+// Activity summary of a user (own summary, or a club looking at one of its coaches)
+router.get('/:id/resumen', authMiddleware, asyncHandler(getResumen));
 
 module.exports = router;

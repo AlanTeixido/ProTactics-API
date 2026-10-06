@@ -1,90 +1,45 @@
-const {
-  crearEquipo,
-  obtenerEquiposDelClub,
-  obtenerEquiposDelEntrenador,
-  actualizarEquipoDB,
-  eliminarEquipoDB
-} = require('../models/Equipo');
+const Equipo = require('../models/Equipo');
 
+// POST /equipos (club)
 const crearEquipoController = async (req, res) => {
   const { nombre, categoria } = req.body;
-  const { id, tipo } = req.user; // id = club_id
-
-  if (tipo !== 'club') {
-    return res.status(403).json({ error: 'No tens permís per crear equips.' });
-  }
-
-  if (!nombre || !categoria) {
-    return res.status(400).json({ error: 'Falten camps obligatoris.' });
-  }
-
-  try {
-    const nuevoEquipo = await crearEquipo(nombre, categoria, id); // sense entrenador
-    res.status(201).json({ message: 'Equip creat correctament', equipo: nuevoEquipo });
-  } catch (error) {
-    console.error('❌ Error creant equip:', error);
-    res.status(500).json({ error: 'Error del servidor.' });
-  }
+  const nuevoEquipo = await Equipo.crearEquipo(nombre.trim(), categoria.trim(), req.user.id);
+  res.status(201).json({ message: 'Equip creat correctament', equipo: nuevoEquipo });
 };
 
-
+// GET /equipos and GET /equipos/mis-equipos: a club gets its teams,
+// a coach gets the teams of their club.
 const obtenerEquipos = async (req, res) => {
-  const { id } = req.user;
-
-  try {
-    const equipos = await obtenerEquiposDelClub(id);
-    res.json(equipos);
-  } catch (error) {
-    console.error('❌ Error obtenint equips:', error);
-    res.status(500).json({ error: 'Error del servidor.' });
-  }
+  const { id, tipo } = req.user;
+  const equipos = tipo === 'club' ? await Equipo.obtenerEquiposDelClub(id) : await Equipo.obtenerEquiposDelEntrenador(id);
+  res.json(equipos);
 };
 
+// GET /equipos/entrenador (coach)
 const obtenerEquiposPorEntrenador = async (req, res) => {
-  const entrenador_id = req.user.id;
-
-  try {
-    const equipos = await obtenerEquiposDelEntrenador(entrenador_id);
-    res.json(equipos);
-  } catch (error) {
-    console.error('❌ Error obtenint equips per entrenador:', error);
-    res.status(500).json({ error: 'Error del servidor.' });
-  }
+  res.json(await Equipo.obtenerEquiposDelEntrenador(req.user.id));
 };
 
+// PUT /equipos/:id (club, own teams only)
 const editarEquipo = async (req, res) => {
-  const { id, tipo } = req.user;
-  const equipo_id = req.params.id;
   const { nombre, categoria } = req.body;
-
-  if (tipo !== 'club') {
-    return res.status(403).json({ error: 'No tens permís per editar equips.' });
+  if (nombre === undefined && categoria === undefined) {
+    return res.status(400).json({ error: 'No hi ha cap camp per actualitzar.' });
   }
 
-  try {
-    await actualizarEquipoDB(equipo_id, id, nombre, categoria);
-    res.json({ message: 'Equip actualitzat correctament' });
-  } catch (error) {
-    console.error('❌ Error actualitzant equip:', error);
-    res.status(500).json({ error: 'Error del servidor.' });
-  }
+  const updated = await Equipo.actualizarEquipoDB(Number(req.params.id), req.user.id, {
+    nombre: nombre?.trim(),
+    categoria: categoria?.trim(),
+  });
+  if (!updated) return res.status(404).json({ error: 'Equip no trobat.' });
+  return res.json({ message: 'Equip actualitzat correctament' });
 };
 
+// DELETE /equipos/:id (club, own teams only)
 const eliminarEquipo = async (req, res) => {
-  const { id, tipo } = req.user;
-  const equipo_id = req.params.id;
-
-  if (tipo !== 'club') {
-    return res.status(403).json({ error: 'No tens permís per eliminar equips.' });
-  }
-
-  try {
-    await eliminarEquipoDB(equipo_id, id);
-    res.json({ message: 'Equip eliminat correctament' });
-  } catch (error) {
-    console.error('❌ Error eliminant equip:', error);
-    res.status(500).json({ error: 'Error del servidor.' });
-  }
+  const deleted = await Equipo.eliminarEquipoDB(Number(req.params.id), req.user.id);
+  if (!deleted) return res.status(404).json({ error: 'Equip no trobat.' });
+  return res.json({ message: 'Equip eliminat correctament' });
 };
 
 module.exports = {
@@ -92,5 +47,5 @@ module.exports = {
   obtenerEquipos,
   obtenerEquiposPorEntrenador,
   editarEquipo,
-  eliminarEquipo
+  eliminarEquipo,
 };

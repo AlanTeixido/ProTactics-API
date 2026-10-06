@@ -20,6 +20,7 @@ const equiposRoutes = require('./routes/equipos');
 const entrenamientosRoutes = require('./routes/entrenamientos');
 const chatbotRoutes = require('./routes/chatBot');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
+const { authRateLimit } = require('./middleware/rateLimit');
 
 const app = express();
 app.disable('x-powered-by');
@@ -38,7 +39,7 @@ app.use(
 app.use(express.json({ limit: '100kb' }));
 
 // API routes
-app.use('/auth', authRoutes);
+app.use('/auth', authRateLimit, authRoutes);
 app.use('/clubes', clubsRoutes);
 app.use('/entrenadores', entrenadoresRoutes);
 app.use('/jugadores', jugadoresRoutes);

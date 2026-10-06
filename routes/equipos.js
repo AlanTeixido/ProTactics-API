@@ -1,27 +1,41 @@
 const express = require('express');
-const router = express.Router();
+const authMiddleware = require('../middleware/authMiddleware');
+const requireRole = require('../middleware/requireRole');
+const asyncHandler = require('../utils/asyncHandler');
+const { validateBody, validateIdParam } = require('../utils/validation');
 const {
   crearEquipoController,
   obtenerEquipos,
   obtenerEquiposPorEntrenador,
   editarEquipo,
-  eliminarEquipo
+  eliminarEquipo,
 } = require('../controllers/equipoController');
 
-const authMiddleware = require('../middleware/authMiddleware');
+const router = express.Router();
+router.param('id', validateIdParam);
+router.use(authMiddleware);
 
-router.post('/', authMiddleware, crearEquipoController);
-router.get('/', authMiddleware, obtenerEquipos);
-router.get('/entrenador', authMiddleware, obtenerEquiposPorEntrenador);
-router.put('/:id', authMiddleware, editarEquipo);
-router.delete('/:id', authMiddleware, eliminarEquipo);
-
-router.get('/mis-equipos', authMiddleware, (req, res) => {
-  const { tipo } = req.user;
-  if (tipo === 'club') return obtenerEquipos(req, res);
-  if (tipo === 'entrenador') return obtenerEquiposPorEntrenador(req, res);
-  return res.status(403).json({ error: 'Tipus d\'usuari no suportat.' });
-});
-
+router.post(
+  '/',
+  requireRole('club'),
+  validateBody({
+    nombre: { type: 'string', required: true, max: 100 },
+    categoria: { type: 'string', required: true, max: 50 },
+  }),
+  asyncHandler(crearEquipoController)
+);
+router.get('/', asyncHandler(obtenerEquipos));
+router.get('/entrenador', requireRole('entrenador'), asyncHandler(obtenerEquiposPorEntrenador));
+router.get('/mis-equipos', asyncHandler(obtenerEquipos));
+router.put(
+  '/:id',
+  requireRole('club'),
+  validateBody({
+    nombre: { type: 'string', nullable: false, max: 100 },
+    categoria: { type: 'string', nullable: false, max: 50 },
+  }),
+  asyncHandler(editarEquipo)
+);
+router.delete('/:id', requireRole('club'), asyncHandler(eliminarEquipo));
 
 module.exports = router;

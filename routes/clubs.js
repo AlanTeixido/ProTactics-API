@@ -1,35 +1,61 @@
 const express = require('express');
-const router = express.Router();
+const authMiddleware = require('../middleware/authMiddleware');
+const { authRateLimit } = require('../middleware/rateLimit');
+const asyncHandler = require('../utils/asyncHandler');
+const { validateBody, validateIdParam } = require('../utils/validation');
 const {
   registrarClub,
+  listarClubs,
   obtenerClubPorId,
-  editarPerfilClub, 
-  editarPasswordClub
+  editarPerfilClub,
+  editarPasswordClub,
 } = require('../controllers/clubController');
-const db = require('../config/db');
-const authMiddleware = require('../middleware/authMiddleware');
 
-// Registro
-router.post('/register', registrarClub);
+const router = express.Router();
+router.param('id', validateIdParam);
 
-// Obtener todos los clubs
-router.get('/', async (req, res) => {
-  try {
-    const result = await db.query('SELECT * FROM clubs');
-    res.status(200).json(result.rows);
-  } catch (error) {
-    console.error('❌ Error al obtener clubs:', error);
-    res.status(500).json({ error: 'Error del servidor' });
-  }
-});
+// Registration (public)
+router.post(
+  '/register',
+  authRateLimit,
+  validateBody({
+    nombre: { type: 'string', required: true, max: 100 },
+    correo: { type: 'email', required: true },
+    password: { type: 'password', required: true },
+    ubicacion: { type: 'string', max: 150 },
+  }),
+  asyncHandler(registrarClub)
+);
 
-// Obtener perfil de un club por ID (protegido)
-router.get('/:id', authMiddleware, obtenerClubPorId);
+// Public list of clubs (only public columns)
+router.get('/', asyncHandler(listarClubs));
 
-// Editar perfil del club
-router.put('/:id', authMiddleware, editarPerfilClub);
+// Club profile: the club itself or its coaches
+router.get('/:id', authMiddleware, asyncHandler(obtenerClubPorId));
 
-// Cambiar contraseña del club
-router.put('/:id/password', authMiddleware, editarPasswordClub);
+// Edit the club profile (owner only)
+router.put(
+  '/:id',
+  authMiddleware,
+  validateBody({
+    nombre: { type: 'string', required: true, max: 100 },
+    correo: { type: 'email', required: true },
+    ubicacion: { type: 'string', max: 150 },
+    foto_url: { type: 'url' },
+  }),
+  asyncHandler(editarPerfilClub)
+);
+
+// Change the club password (owner only, needs the current password)
+router.put(
+  '/:id/password',
+  authRateLimit,
+  authMiddleware,
+  validateBody({
+    contrasena_actual: { type: 'text', required: true, max: 1024 },
+    contrasena_nova: { type: 'password', required: true },
+  }),
+  asyncHandler(editarPasswordClub)
+);
 
 module.exports = router;

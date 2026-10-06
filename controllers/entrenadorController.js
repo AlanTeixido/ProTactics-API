@@ -1,129 +1,94 @@
 const bcrypt = require('bcryptjs');
-const {
-  crearEntrenador,
-  buscarPorCorreo,
-  buscarEntrenadorPorId,
-  obtenerEntrenadoresDelClub,
-  eliminarEntrenadorPorId,
-  actualizarEntrenador
-} = require('../models/Entrenador');
+const Entrenador = require('../models/Entrenador');
+const { correoEnUso } = require('../models/Usuario');
+const { normalizeEmail, pickDefined } = require('../utils/validation');
 
-// Crear nuevo entrenador
+// Shared by POST /entrenadores/register and POST /auth/register/entrenador.
+// Returns the new coach, or null when the email is already used.
+const crearEntrenadorDelClub = async (club_id, { nombre, correo, password, equipo }) => {
+  const correoNormalitzat = normalizeEmail(correo);
+  if (await correoEnUso(correoNormalitzat)) return null;
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  return Entrenador.crearEntrenador({ nombre: nombre.trim(), correo: correoNormalitzat, passwordHash, equipo, club_id });
+};
+
+// A club can access its own coaches; a coach can access only their own profile.
+const cargarEntrenadorAccesible = async (user, entrenador_id) => {
+  const entrenador = await Entrenador.buscarEntrenadorPorId(entrenador_id);
+  if (!entrenador) return null;
+  if (user.tipo === 'club' && entrenador.club_id === user.id) return entrenador;
+  if (user.tipo === 'entrenador' && entrenador.entrenador_id === user.id) return entrenador;
+  return null;
+};
+
+// POST /entrenadores/register (club)
 const registrarEntrenador = async (req, res) => {
-  const { nombre, correo, password, equipo } = req.body;
-  const club_id = req.user.id;
-
-  if (!nombre || !correo || !password || !equipo) {
-    return res.status(400).json({ error: 'Falten camps obligatoris.' });
-  }
-
-  try {
-    const existe = await buscarPorCorreo(correo);
-    if (existe) {
-      return res.status(409).json({ error: 'Ja existeix un entrenador amb aquest correu.' });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const nuevoEntrenador = await crearEntrenador(nombre, correo, hashedPassword, equipo, club_id);
-
-    res.status(201).json({ message: 'Entrenador creat correctament', entrenador: nuevoEntrenador });
-  } catch (error) {
-    console.error("❌ Error creant entrenador:", error);
-    res.status(500).json({ error: 'Error del servidor.' });
-  }
+  const entrenador = await crearEntrenadorDelClub(req.user.id, req.body);
+  if (!entrenador) return res.status(409).json({ error: 'Ja existeix un compte amb aquest correu.' });
+  return res.status(201).json({ message: 'Entrenador creat correctament', entrenador });
 };
 
-// Obtener todos los entrenadores del club autenticado
+// GET /entrenadores (club): coaches of the authenticated club.
 const listarEntrenadores = async (req, res) => {
-  const club_id = req.user.id;
-
-  try {
-    const entrenadores = await obtenerEntrenadoresDelClub(club_id);
-    res.json(entrenadores);
-  } catch (error) {
-    console.error('❌ Error llistant entrenadors:', error);
-    res.status(500).json({ error: 'Error del servidor.' });
-  }
+  res.json(await Entrenador.obtenerEntrenadoresDelClub(req.user.id));
 };
 
-// Obtener perfil de un entrenador por ID (protegido y validado por club_id)
+// GET /entrenadores/:id
 const obtenerEntrenadorPorId = async (req, res) => {
-  const entrenador_id = req.params.id;
-  const club_id = req.user.id;
-
-  try {
-    const entrenador = await buscarEntrenadorPorId(entrenador_id);
-
-    if (!entrenador || entrenador.club_id !== club_id) {
-      return res.status(404).json({ error: 'Entrenador no trobat' });
-    }
-
-    res.json(entrenador);
-  } catch (error) {
-    console.error("❌ Error obtenint entrenador:", error);
-    res.status(500).json({ error: 'Error del servidor.' });
-  }
+  const entrenador = await cargarEntrenadorAccesible(req.user, Number(req.params.id));
+  if (!entrenador) return res.status(404).json({ error: 'Entrenador no trobat' });
+  return res.json(entrenador);
 };
 
-// Editar entrenador
+// PUT /entrenadores/:id: a club edits its coaches, a coach edits their own profile.
+// Partial update: fields that are not sent are left untouched.
 const editarEntrenador = async (req, res) => {
-  const club_id = req.user.id;
-  const entrenador_id = req.params.id;
-  const { nombre, correo, password, equipo, telefono, foto_url, notas } = req.body;
+  const entrenador_id = Number(req.params.id);
+  const entrenador = await cargarEntrenadorAccesible(req.user, entrenador_id);
+  if (!entrenador) return res.status(404).json({ error: 'Entrenador no trobat' });
 
-  try {
-    const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
-
-    await actualizarEntrenador(entrenador_id, nombre, correo, hashedPassword, equipo, telefono, foto_url, notas, club_id);
-    res.json({ message: 'Entrenador actualitzat correctament' });
-  } catch (error) {
-    console.error("❌ Error actualitzant entrenador:", error);
-    res.status(500).json({ error: 'Error del servidor.' });
-  }
-};
-
-// Eliminar entrenador
-const eliminarEntrenador = async (req, res) => {
-  const club_id = req.user.id;
-  const entrenador_id = req.params.id;
-
-  try {
-    await eliminarEntrenadorPorId(entrenador_id, club_id);
-    res.json({ message: 'Entrenador eliminat correctament' });
-  } catch (error) {
-    console.error("❌ Error eliminant entrenador:", error);
-    res.status(500).json({ error: 'Error del servidor.' });
-  }
-};
-
-const obtenerMiPerfilEntrenador = async (req, res) => {
-  if (req.user.tipo !== 'entrenador') {
-    return res.status(403).json({ error: 'Accés no autoritzat. Només entrenadors.' });
-  }
-
-  const entrenador_id = req.user.id;
-
-  try {
-    const entrenador = await buscarEntrenadorPorId(entrenador_id);
-
-    if (!entrenador) {
-      return res.status(404).json({ error: 'Entrenador no trobat' });
+  const campos = pickDefined(
+    req.body,
+    Entrenador.EDITABLE_COLUMNS.filter((column) => column !== 'password')
+  );
+  if (campos.nombre) campos.nombre = campos.nombre.trim();
+  if (campos.correo) {
+    campos.correo = normalizeEmail(campos.correo);
+    if (await correoEnUso(campos.correo, { exceptEntrenadorId: entrenador_id })) {
+      return res.status(409).json({ error: 'Ja existeix un compte amb aquest correu.' });
     }
-
-    res.json(entrenador);
-  } catch (error) {
-    console.error("❌ Error obtenint el teu perfil:", error);
-    res.status(500).json({ error: 'Error del servidor.' });
   }
+  if (req.body.password) campos.password = await bcrypt.hash(req.body.password, 10);
+
+  if (Object.keys(campos).length === 0) {
+    return res.status(400).json({ error: 'No hi ha cap camp per actualitzar.' });
+  }
+
+  await Entrenador.actualizarEntrenador(entrenador_id, campos);
+  return res.json({ message: 'Entrenador actualitzat correctament' });
 };
 
+// DELETE /entrenadores/:id (club)
+const eliminarEntrenador = async (req, res) => {
+  const deleted = await Entrenador.eliminarEntrenadorPorId(Number(req.params.id), req.user.id);
+  if (!deleted) return res.status(404).json({ error: 'Entrenador no trobat' });
+  return res.json({ message: 'Entrenador eliminat correctament' });
+};
 
+// GET /entrenadores/me (coach)
+const obtenerMiPerfilEntrenador = async (req, res) => {
+  const entrenador = await Entrenador.buscarEntrenadorPorId(req.user.id);
+  if (!entrenador) return res.status(404).json({ error: 'Entrenador no trobat' });
+  return res.json(entrenador);
+};
 
 module.exports = {
+  crearEntrenadorDelClub,
   registrarEntrenador,
   listarEntrenadores,
   obtenerEntrenadorPorId,
   editarEntrenador,
   eliminarEntrenador,
-  obtenerMiPerfilEntrenador
+  obtenerMiPerfilEntrenador,
 };
